@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="21.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>dev_update_off ()</l>
+<l>dev_close_window ()</l>
+<c></c>
+<c>* preparation</c>
+<l>gen_cam_par_area_scan_division (0.0078066255, -0.121916, 0.00000345,0.00000345,1071.03,793.9,1440,1080, CamParam)</l>
+<l>get_cam_par_data (CamParam, 'image_width', ImageWidth)</l>
+<l>get_cam_par_data (CamParam, 'image_height', ImageHeight)</l>
+<l>WindowWidth := ImageWidth*11/20</l>
+<l>WindowHeight := ImageHeight*11/20</l>
+<l>dev_open_window (0, 0, WindowWidth, WindowHeight, 'black', WindowHandle)</l>
+<l>set_display_font (WindowHandle, 16, 'mono', 'true', 'false')</l>
+<l>dev_set_line_width (3)</l>
+<l>dev_set_color ('green')</l>
+<l>dev_set_draw ('margin')</l>
+<l>GenParamName := ['disp_pose','intensity']</l>
+<l>GenParamValue := ['true','&amp;intensity']</l>
+<c></c>
+<c>*create calibration data</c>
+<l>create_calib_data ('hand_eye_stationary_cam', 0, 0, HECCalibDataID)</l>
+<c></c>
+<c>*设置手眼校准过程中要使用的优化方法。如果设置了 DataValue = 'nonlinear'，则将非线性方法用于手眼校准</c>
+<c>*姿态最准确的优化方法是非线性方法</c>
+<l>set_calib_data (HECCalibDataID, 'model', 'general','optimization_method', 'nonlinear')  </l>
+<c></c>
+<c>*****************************创建球体模型***************************</c>
+<l>SphereRadius:=27.7</l>
+<l>gen_sphere_object_model_3d ([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0], SphereRadius, SphereOM3D)</l>
+<l>convex_hull_object_model_3d (SphereOM3D, SphereOM3D)</l>
+<c>*创建模板,法线</c>
+<l>create_surface_model (SphereOM3D, 0.02, 'model_invert_normals', 'true', SphereSurfaceModelID)</l>
+<c>* Visualize model for surface-based matching.</c>
+<l>get_surface_model_param (SphereSurfaceModelID, 'sampled_model', SphereSampledModel)</l>
+<l>Title := 'Calibration sphere that will be used for surface-based matching.'</l>
+<l>Title[|Title|] := 'Radius: ' + SphereRadius</l>
+<l>visualize_object_model_3d (WindowHandle, [SphereSampledModel,SphereOM3D], [], [], ['disp_pose','color','point_size','disp_normals','normal_color'], ['true','green',3,'true','gray'], Title, [], [], PoseOut)</l>
+<l>read_object_model_3d ('标定块', 'm', [], [], BoardOM3D, Status)</l>
+<c></c>
+<l>create_surface_model (BoardOM3D, 0.02, [], [], BoardSurfaceModelID)</l>
+<l>get_surface_model_param (BoardSurfaceModelID, 'sampled_model', BoardSampledModel)</l>
+<l>visualize_object_model_3d (WindowHandle, [BoardSampledModel], [], [], ['disp_pose','color','point_size','disp_normals','normal_color'], ['true','green',3,'true','gray'], [], [], [], PoseOut)</l>
+<c></c>
+<l>stop ()</l>
+<c></c>
+<l>calibration := 0</l>
+<c></c>
+<l>if(calibration=1)</l>
+<l>    RemoveNumber:=[]    //remove unused point</l>
+<l>    NumCalibrationScenes := 20          //max point num</l>
+<l>    RealNumCalibrationScenes:=0         //real calibration point number</l>
+<l>    Num:=[]   //每个样本对应序号---用于后面验证标定结果时,根据序号读取对应样本点云</l>
+<l>    for I := 1 to NumCalibrationScenes by 1</l>
+<l>        tuple_find (RemoveNumber, I, RemoveNumberIndex)//查找需要移除的样本序号  </l>
+<l>        if(RemoveNumberIndex!=-1 and |RemoveNumberIndex|!=0)</l>
+<c>            *如果查找到有需要移除的样本,则该样本不需要进行标定</c>
+<l>            continue</l>
+<l>        endif</l>
+<l>        RealNumCalibrationScenes:=RealNumCalibrationScenes+1   //真实标定样本数量</l>
+<l>        Num:=[Num,I]   //样本对应序号</l>
+<c>    </c>
+<l>        filename := 'pointcloud/3d_CalBoarde_' + I$'02d'</l>
+<c>        */以m为单位读取点云文件</c>
+<l>        read_object_model_3d (filename,  'm', [], [], ObjectModel3D, Status)     </l>
+<c>    </c>
+<l>        object_model_3d_to_xyz (X, Y, Z, ObjectModel3D,'from_xyz_map', [], [])</l>
+<c>        *获取图像行列坐标</c>
+<l>        get_region_points (Z, CalBoard_Rows, CalBoard_Columns)</l>
+<c>        *获取点云灰度值</c>
+<l>        get_object_model_3d_params (ObjectModel3D, '&amp;intensity', intensity)</l>
+<c>        *直接创建byte类型的图像,find_data_code_2d输入图像要为byte类型</c>
+<l>        gen_image_const (Image, 'byte', 1440, 1080)</l>
+<c>        *将灰度值写入图像对应的行列坐标---拿到标定板图像</c>
+<l>        set_grayval (Image, CalBoard_Rows, CalBoard_Columns, intensity)</l>
+<l>        scale_image (Image, Image, 1, 0)</l>
+<l>        dev_display (Image)</l>
+<c>    </c>
+<l>    connection_object_model_3d (ObjectModel3D, ['distance_3d'], 2, ObjectModel3DConnected)</l>
+<l>    select_object_model_3d (ObjectModel3DConnected, 'num_points', 'and', 200, 5000000, ObjectModel3DSelected)</l>
+<c>    *联合连通域-&gt;将多个3D对象模型组合到新的3D对象模型中  </c>
+<l>    union_object_model_3d (ObjectModel3DSelected, 'points_surface', UnionObjectModel3D)</l>
+<c>    </c>
+<l>    smooth_object_model_3d (UnionObjectModel3D, 'mls', [], [], SmoothObjectModel3D)    </l>
+<l>        find_surface_model (SphereSurfaceModelID, SmoothObjectModel3D, 0.05, 0.2, 0.15, 'false', [], [], Sphere_Cam_H_Obj, SphereScore, SphereSurfaceMatchingResultID)</l>
+<l>        Params := ['num_matches','scene_normal_computation','max_overlap_dist_rel','pose_ref_sub_sampling','scene_normal_computation','pose_ref_num_steps']</l>
+<l>        Values := [1,'mls',1,2,'mls',5]</l>
+<l>        find_surface_model (BoardSurfaceModelID, SmoothObjectModel3D, 0.02, 0.5, 0.1, 'false', Params,Values, Board_Cam_H_Obj, BoardScore, BoardSurfaceMatchingResultID)</l>
+<l>        if (|SphereScore|=1 and |BoardScore|=1)</l>
+<c>            *优化3D场景中曲面模型的姿态</c>
+<c>    </c>
+<l>            rigid_trans_object_model_3d (SphereOM3D, Sphere_Cam_H_Obj, SphereOM3DRigidTrans)</l>
+<c>    </c>
+<l>            rigid_trans_object_model_3d (BoardOM3D, Board_Cam_H_Obj, BoardOM3DRigidTrans)</l>
+<c>            </c>
+<l>            Message := 'Scene: '</l>
+<l>            Message[1] := I + ' of ' + NumCalibrationScenes</l>
+<l>            dev_clear_window ()   </l>
+<l>            visualize_object_model_3d (WindowHandle, [SmoothObjectModel3D,SphereOM3DRigidTrans,BoardOM3DRigidTrans], [], [], ['intensity_0','color_1','color_2'], ['&amp;intensity','red','green'], [], [], Message, PoseOut1)    </l>
+<c>    </c>
+<l>            convert_pose_type (Sphere_Cam_H_Obj, 'Rp+T', 'abg', 'point', Sphere_Cam_H_Obj_abg)</l>
+<l>            convert_pose_type (Board_Cam_H_Obj, 'Rp+T', 'abg', 'point', Board_Cam_H_Obj_abg)</l>
+<c>            </c>
+<l>            create_pose (Sphere_Cam_H_Obj_abg[0], Sphere_Cam_H_Obj_abg[1], Sphere_Cam_H_Obj_abg[2],\ 
+                         Board_Cam_H_Obj_abg[3], Board_Cam_H_Obj_abg[4], Board_Cam_H_Obj_abg[5], 'Rp+T', 'abg', 'point', Cam_H_Obj_abg)</l>
+<c>            </c>
+<c>            *Transform from [mm] to [m]</c>
+<l>            Cam_H_Obj_m := Cam_H_Obj_abg</l>
+<l>            Cam_H_Obj_m[0:2] := Cam_H_Obj_m[0:2]/1000  //将单位改为m</l>
+<l>        else</l>
+<l>            disp_message (WindowHandle,  '标定物匹配失败', 'window', 40, 12, 'black', 'true')</l>
+<l>            stop ()</l>
+<l>        endif</l>
+<c>        </c>
+<c>        </c>
+<c>        ******************************************calibrate*****************************************</c>
+<l>        read_pose ('pose/robot_pose_' + I$'02d' + '.dat', Base_H_Tool)//读入的机器人ToolInBasePose为abg类型</l>
+<c>       </c>
+<c>        *Transform from [mm] to [m]</c>
+<l>        Base_H_Tool_m := Base_H_Tool</l>
+<l>        Base_H_Tool_m[0:2] := Base_H_Tool_m[0:2] * 0.001//将单位改为m </l>
+<l>        if (|SphereScore|=1 and |BoardScore|=1)</l>
+<l>            set_calib_data (HECCalibDataID, 'tool', RealNumCalibrationScenes, 'tool_in_base_pose', Base_H_Tool_m)    //将ToolInBasePose(机器人工具的位姿)输入标定数据模型</l>
+<l>            set_calib_data_observ_pose (HECCalibDataID, 0, 0, RealNumCalibrationScenes, Cam_H_Obj_m)                 //将ObjInCamPose(校准对象的位姿)输入标定数据模型      </l>
+<l>        endif    </l>
+<l>        clear_object_model_3d ([ObjectModel3D,SphereOM3DRigidTrans,BoardOM3DRigidTrans])</l>
+<l>    endfor</l>
+<c>    </c>
+<l>    stop ()</l>
+<c>        </c>
+<l>    check_hand_eye_calibration_input_poses (HECCalibDataID, 0.05, 0.005, Warnings)//5单位为mm,默认值0.005是以m为单位</l>
+<l>    if (|Warnings| != 0)</l>
+<c>        * There were problem detected in the input poses. Inspect Warnings and</c>
+<c>        * remove erroneous poses with remove_calib_data and remove_calib_data_observ.</c>
+<l>        dev_inspect_ctrl (Warnings)</l>
+<l>        stop ()</l>
+<l>    endif</l>
+<c>    </c>
+<l>    dev_clear_window ()</l>
+<l>    disp_message (WindowHandle, 'Performing the hand-eye calibration', 'window', 12, 12, 'black', 'true')</l>
+<c>    </c>
+<c>    *perform eye hand calibration</c>
+<l>    calibrate_hand_eye (HECCalibDataID, HECPoseError)    </l>
+<c>    </c>
+<c>    * Obtain the results of the hand-eye calibration and save them to file.</c>
+<l>    get_calib_data (HECCalibDataID, 'camera', 0, 'base_in_cam_pose', Cam_H_Base)</l>
+<l>    get_calib_data (HECCalibDataID, 'calib_obj', 0, 'obj_in_tool_pose', Tool_H_Obj)</l>
+<l>    pose_invert (Cam_H_Base, Base_H_Cam) //该pose为abg类型</l>
+<l>*     write_pose (Base_H_Cam, 'campose.dat')</l>
+<c>    *Transform from [mm] to [m]</c>
+<l>    Cam_H_Base_mm:=Cam_H_Base </l>
+<l>    Cam_H_Base_mm[0:2]:=Cam_H_Base_mm[0:2]*1000</l>
+<c>    </c>
+<l>    write_pose (Cam_H_Base, 'results/Cam_H_Base.dat')</l>
+<l>    write_pose (Tool_H_Obj, 'results/Tool_H_Obj.dat')</l>
+<c>    </c>
+<l>else</l>
+<l>    read_pose ('results/Cam_H_Base.dat', Cam2Base)</l>
+<l>    read_pose ('results/Tool_H_Obj.dat', Tool2Obj)    </l>
+<l>endif</l>
+<c></c>
+<c></c>
+<l>stop()</l>
+<c></c>
+<c></c>
+<c>*******************************Pose trans*********************************************</c>
+<l>query_calib_data_observ_indices (HECCalibDataID, 'camera', 0, CalibObjIdx, PoseIds)</l>
+<c></c>
+<l>Cam2BaseTemp := Cam2Base</l>
+<c></c>
+<l>NumCalibrationScenes:=20</l>
+<l>for J := 1 to NumCalibrationScenes by 1</l>
+<c>    </c>
+<l>    filename := 'pointcloud/3d_CalBoarde_' + J$'02d'</l>
+<l>    read_object_model_3d (filename, 0.001, [], [], ObjectModel3D, Status1)</l>
+<l>    read_pose ('pose/robot_pose_' + J$'02d' + '.dat', Base2Tool)</l>
+<l>    Base2Tool[0:2] := Base2Tool[0:2] * 0.001//将单位改为m </l>
+<c>    *CalObjInCamPose = BaseInCamPose*ToolInBasePose*CalObjInToolPose</c>
+<c>    *base in cam - tool in base = tool in cam</c>
+<l>    pose_compose (Cam2Base, Base2Tool, Cam2Tool) </l>
+<l>*     pose_compose (ReCam2Base, Base2Tool, Cam2Tool) </l>
+<l>    pose_compose (Cam2Tool, Tool2Obj, CalCam2Obj)</l>
+<l>    CalCam2ObjTemp := CalCam2Obj</l>
+<l>    CalCam2ObjTemp[0:2] := CalCam2ObjTemp[0:2]*1000</l>
+<l>    rigid_trans_object_model_3d (SphereOM3D, CalCam2ObjTemp, SphereOM3DRigidTrans_Test)</l>
+<l>    Message := 'CalBoard: '</l>
+<l>    Message[1] := J + ' of ' + NumCalibrationScenes</l>
+<l>    register_object_model_3d_pair (SphereOM3DRigidTrans_Test, ObjectModel3D, 'icp', [], [], icpPose, Score)</l>
+<c>    </c>
+<c>    *icp pose = real cam to calcam</c>
+<l>    convert_pose_type (icpPose, 'Rp+T', 'abg', 'point', IcpPose)</l>
+<l>    pose_compose (IcpPose, CalCam2ObjTemp, ReCam2Obj)</l>
+<c>    </c>
+<l>    posesavename := 'Repose/Re_Cam2Obj_' + J$'02d' + '.dat'</l>
+<l>    write_pose (ReCam2Obj, posesavename)</l>
+<c>        </c>
+<c>    *set pose to 3d ball model</c>
+<l>    rigid_trans_object_model_3d (SphereOM3D, ReCam2Obj, SphereOM3DRigidTrans_Test2)</l>
+<c>    </c>
+<c>    *pose invert</c>
+<l>    pose_invert (Base2Tool, Tool2Base)</l>
+<l>    pose_invert (Tool2Obj, Obj2Tool)</l>
+<c>    </c>
+<c>    *change format to m</c>
+<l>    ReCam2Obj[0:2] := ReCam2Obj[0:2]/1000</l>
+<c>        </c>
+<c>    *cam2obj*obj2tool*tool2base = cam2base</c>
+<l>    pose_compose (ReCam2Obj, Obj2Tool, ReCam2Tool)</l>
+<l>    pose_compose (ReCam2Tool, Tool2Base, ReCam2Base)</l>
+<c>    </c>
+<l>    savename := 'Repose/Re_Cam2Base_' + J$'02d' + '.dat'</l>
+<l>    write_pose (ReCam2Base, savename)</l>
+<c>    </c>
+<c>    </c>
+<c>    </c>
+<c>    *icp pose to base</c>
+<c>    *change format to m</c>
+<l>*     RelCam2CalCam := IcpPose</l>
+<l>*     RelCam2CalCam[0:2] := RelCam2CalCam[0:2]/1000</l>
+<c>    </c>
+<c>    *pose compose</c>
+<l>*     pose_compose (RelCam2CalCam, Obj2Tool, ReIcpTool)</l>
+<l>*     pose_compose (ReIcpTool, Tool2Base, ReIcp2Base)</l>
+<l>*     pose_compose (ReIcp2Base, Cam2Base, testpose1)</l>
+<c>    </c>
+<c>    </c>
+<c>    *visualization</c>
+<l>    visualize_object_model_3d (WindowHandle, [ObjectModel3D,SphereOM3DRigidTrans_Test],[], [], \
+                               ['intensity_0','color_1','disp_pose'],\
+                               ['&amp;intensity','red','true'], \
+                               [], [], [Message], PoseOut2)</l>
+<c>    </c>
+<l>    visualize_object_model_3d (WindowHandle, [ObjectModel3D,SphereOM3DRigidTrans_Test2],[], [], \
+                               ['intensity_0','color_1','disp_pose'],\
+                               ['&amp;intensity','red','true'], \
+                               [], [], [Message], PoseOut2)</l>
+<l>    clear_object_model_3d (ObjectModel3D)</l>
+<l>endfor</l>
+<c></c>
+<l>stop()</l>
+<c></c>
+<c></c>
+<c>**********************************calc distance******************************************</c>
+<c></c>
+<l>create_pose (0.17, -0.05, 1.71, 35, 13, 225, 'Rp+T', 'abg', 'point', Cam2Obj)</l>
+<c></c>
+<c>* init parameter</c>
+<l>X_Cam2Obj := []</l>
+<l>Y_Cam2Obj := []</l>
+<l>Z_Cam2Obj := []</l>
+<l>X_ReCam2Obj :=[]</l>
+<l>Y_ReCam2Obj := []</l>
+<l>Z_ReCam2Obj := []</l>
+<c></c>
+<c>* prepare for calc distance</c>
+<l>for H := 1 to NumCalibrationScenes by 1</l>
+<c>    *read Real Cam2Obj pose from files</c>
+<l>    resultname := 'Repose/Re_Cam2Obj_' + H$'02d' + '.dat'</l>
+<l>    read_pose (resultname,Re_Cam2Obj)</l>
+<l>    X_Cam2Obj := [X_Cam2Obj, Cam2Obj[0] * 1000]</l>
+<l>    Y_Cam2Obj := [Y_Cam2Obj, Cam2Obj[1] * 1000]</l>
+<l>    Z_Cam2Obj := [Z_Cam2Obj, Cam2Obj[2] * 1000]</l>
+<c></c>
+<l>    X_ReCam2Obj := [X_ReCam2Obj, Re_Cam2Obj[0]]</l>
+<l>    Y_ReCam2Obj := [Y_ReCam2Obj, Re_Cam2Obj[1]]</l>
+<l>    Z_ReCam2Obj := [Z_ReCam2Obj, Re_Cam2Obj[2]]</l>
+<c>      </c>
+<l>endfor </l>
+<c></c>
+<c>* Calculate obj distance</c>
+<l>X_diff := X_Cam2Obj - X_ReCam2Obj</l>
+<l>Y_diff := Y_Cam2Obj - Y_ReCam2Obj</l>
+<l>Z_diff := Z_Cam2Obj - Z_ReCam2Obj</l>
+<l>PoseDistance := sqrt(X_diff * X_diff + Y_diff * Y_diff + Z_diff * Z_diff)</l>
+<c></c>
+<c>* select min distance point</c>
+<l>tuple_sort_index (PoseDistance, PoseDistanceIndices)</l>
+<l>* tuple_sort (PoseErr, Sorted)</l>
+<l>* tuple_sort_index (Sorted, Indices1)</l>
+<l>MinDistance := PoseDistanceIndices[0] + 1</l>
+<c></c>
+<c>* calc ReBase2Obj</c>
+<l>correctionname := 'Repose/Re_Cam2Base_' + MinDistance$'02d' + '.dat'</l>
+<l>read_pose (correctionname, CoCam2Base)</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

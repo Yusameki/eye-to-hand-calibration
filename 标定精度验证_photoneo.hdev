@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="21.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>************************************************************************/																													</c>
+<c>*标定精度验证</c>
+<c>************************************************************************/</c>
+<l>dev_update_off ()</l>
+<l>dev_close_window ()</l>
+<l>gen_cam_par_area_scan_division (0.0078066255, -0.121916, 0.00000345,0.00000345,1071.03,793.9,1440,1080, CamParam)</l>
+<l>get_cam_par_data (CamParam, 'image_width', ImageWidth)</l>
+<l>get_cam_par_data (CamParam, 'image_height', ImageHeight)</l>
+<l>WindowWidth := ImageWidth*3/5   //窗口大小要和图像大小成比例</l>
+<l>WindowHeight := ImageHeight*3/5</l>
+<l>dev_open_window (0, 0, WindowWidth, WindowHeight, '#0A6697', WindowHandle)</l>
+<l>set_display_font (WindowHandle, 16, 'mono', 'true', 'false')</l>
+<l>dev_set_line_width (3)</l>
+<l>dev_set_color ('green')</l>
+<l>dev_set_draw ('margin')</l>
+<l>GenParamName := ['disp_pose','intensity']</l>
+<l>GenParamValue := ['true','&amp;intensity']</l>
+<c></c>
+<c>*****************************************采集****************************************</c>
+<l>AcqName := 'PhoXi'</l>
+<l>info_framegrabber (AcqName, 'device', DeviceInfo, DeviceValues)</l>
+<c>** Connect to scanner via serial number or index in DeviceValues[idx]</c>
+<l>* open_framegrabber (AcqName, 1, 1, 0, 0, 0, 0, 'default', -1, 'default', -1, 'false', 'default', '123456', -1, -1, AcqHandle)</l>
+<l>open_framegrabber (AcqName, 1, 1, 0, 0, 0, 0, 'default', -1, 'default', -1, 'false', 'default', DeviceValues[0], -1, -1, AcqHandle)</l>
+<c>** Check which output data are supported (in PhoXiControl &gt; OutputStructure &gt; Mark desired data &gt; press Set)</c>
+<l>get_framegrabber_param (AcqHandle, 'grab_data_items', AvailableDataToReturn)</l>
+<c>** Default is 'enabled' for both params</c>
+<l>set_framegrabber_param (AcqHandle, 'use_grab_image_async_as_trigger_only', 'enable')</l>
+<l>set_framegrabber_param (AcqHandle, 'wait_for_grabbing_end', 'enable')</l>
+<l>GrabDataItems:=['Texture', 'PointCloud', 'NormalMap', 'DepthMap', 'ConfidenceMap']</l>
+<l>set_framegrabber_param (AcqHandle, 'grab_data_items', GrabDataItems)</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<l>grab_image_async (TextureImage, AcqHandle, 0)</l>
+<l>grab_data_async (ImageData, Region, Contours, AcqHandle, 0, Data)</l>
+<c>** Order of objects must be preserved</c>
+<l>select_obj (ImageData, Texture, 1)</l>
+<l>select_obj (ImageData, PointCloud, 2)</l>
+<l>select_obj (ImageData, Normals, 3)</l>
+<l>select_obj (ImageData, DepthMap, 4)</l>
+<l>select_obj (ImageData, ConfidenceMap, 5)</l>
+<c>** Transform from [mm] to [m]</c>
+<l>* scale_image (PointCloud, PointCloud, 1e-3, 0)</l>
+<l>decompose3 (PointCloud, X, Y, Z)</l>
+<l>decompose3 (Normals, nX, nY, nZ)</l>
+<c>** Find the valid region</c>
+<l>threshold (Z, RegionGood, 0, 5000)</l>
+<l>reduce_domain (X, RegionGood, X)</l>
+<l>reduce_domain (Y, RegionGood, Y)</l>
+<l>reduce_domain (Z, RegionGood, Z)</l>
+<l>reduce_domain (nX, RegionGood, nX)</l>
+<l>reduce_domain (nY, RegionGood, nY)</l>
+<l>reduce_domain (nZ, RegionGood, nZ)</l>
+<c>** Create object model and set normals and intensity</c>
+<l>xyz_to_object_model_3d (X, Y, Z, ObjectModel3D)</l>
+<c>** set normal vectors</c>
+<l>get_region_points (RegionGood, Rows, Columns)</l>
+<l>get_grayval (nX, Rows, Columns, NX)</l>
+<l>get_grayval (nY, Rows, Columns, NY)</l>
+<l>get_grayval (nZ, Rows, Columns, NZ)</l>
+<l>set_object_model_3d_attrib_mod (ObjectModel3D, ['point_normal_x','point_normal_y','point_normal_z'], [], [NX,NY,NZ])</l>
+<c>**********************调整Texture图像类型及对比度***********************</c>
+<l>min_max_gray (Texture, Texture, 0, Min, Max, Range)</l>
+<l>scale_image (Texture, ImageScaled, 0.06, 0)</l>
+<l>convert_image_type (ImageScaled, Image8Bit, 'byte')</l>
+<c>*/调整图像对比度</c>
+<l>scale_image (Image8Bit, Image, 7, 0)</l>
+<l>get_grayval (Image, Rows, Columns, Intensity)</l>
+<l>set_object_model_3d_attrib_mod (ObjectModel3D, '&amp;intensity', 'points', Intensity)</l>
+<l>visualize_object_model_3d (WindowHandle, ObjectModel3D, CamParam, [], GenParamName, GenParamValue, [], [], [], Pose)  </l>
+<c></c>
+<c>**********************拟合平面获得姿态***********************</c>
+<l>dev_set_part (0, 0, ImageHeight, ImageWidth)//显示完整图像    </l>
+<l>draw_rectangle1 (WindowHandle, Row1, Column1, Row2, Column2)</l>
+<l>gen_rectangle1 (PlaneROI, Row1, Column1, Row2, Column2)</l>
+<l>reduce_object_model_3d_by_view (PlaneROI, ObjectModel3D, CamParam, Pose, ObjectModel3D_Plane) </l>
+<l>visualize_object_model_3d (WindowHandle, ObjectModel3D_Plane, CamParam, [], GenParamName, GenParamValue, [], [], [], Pose)</l>
+<l>fit_primitives_object_model_3d (ObjectModel3D_Plane, 'primitive_type', 'plane', OM3D_Plane)</l>
+<l>get_object_model_3d_params (OM3D_Plane, 'primitive_pose', Cam_H_Plane)</l>
+<c>*查看平面是否拟合正确</c>
+<l>pose_invert (Cam_H_Plane, PoseInvert)</l>
+<l>rigid_trans_object_model_3d ([ObjectModel3D_Plane,OM3D_Plane], PoseInvert, OM3DRigidTrans)</l>
+<l>visualize_object_model_3d (WindowHandle, [OM3DRigidTrans[0],OM3DRigidTrans[1]], [], [], ['disp_pose','intensity_0','color_1'], ['true','&amp;intensity','cyan'], [], [], [], Pose)</l>
+<c></c>
+<c>**********************获取内圆***********************</c>
+<l>dev_display (Image)</l>
+<l>draw_circle (WindowHandle, Row3, Column3, Radius3)</l>
+<l>gen_circle (CircleROI, Row3, Column3, Radius3)</l>
+<l>reduce_domain (Image, CircleROI, ImageReduced)</l>
+<l>edges_sub_pix (ImageReduced, Circle0_Edges, 'canny', 2, 20, 60)</l>
+<l>select_shape_xld (Circle0_Edges, Circle0_Edges_select, ['contlength','circularity'], 'and', [100,0.6],[300,1])     </l>
+<l>count_obj (Circle0_Edges_select, Circle0_Number)</l>
+<l>CircleOrEllipse:=1   //正圆椭圆标志:1正圆 0椭圆</l>
+<l>if (Circle0_Number==2)</l>
+<l>    length_xld (Circle0_Edges_select, Circle0_Edges_Length)</l>
+<l>    tuple_sort_index (Circle0_Edges_Length, Circle0_Edges_Indices)</l>
+<l>    select_obj (Circle0_Edges_select, Circle0_Outer, Circle0_Edges_Indices[1]+1)</l>
+<l>    if (CircleOrEllipse)</l>
+<l>        fit_circle_contour_xld (Circle0_Outer, 'ahuber', -1, 2, 0, 3, 2, Circle0_Row, Circle0_Column, Circle0_Radius, Circle0_StartPhi, Circle0_EndPhi, Circle0_PointOrder)</l>
+<l>        gen_circle_contour_xld (Circle0, Circle0_Row, Circle0_Column, Circle0_Radius, 0, rad(360), 'positive', 1.0)</l>
+<l>    else</l>
+<l>        fit_ellipse_contour_xld (Circle0_Outer, 'fitzgibbon', -1, 0, 0, 200, 3, 2, Circle0_Row, Circle0_Column, Circle0_Phi, Circle0_Radius, Circle0_Radius2, Circle0_StartPhi, Circle0_EndPhi, Circle0_PointOrder)</l>
+<l>        gen_ellipse_contour_xld (Circle0, Circle0_Row, Circle0_Column, Circle0_Phi, Circle0_Radius, Circle0_Radius2, Circle0_StartPhi, Circle0_EndPhi, Circle0_PointOrder, 1.5)</l>
+<l>    endif</l>
+<l>else</l>
+<l>    disp_message (WindowHandle,  '圆环查找失败', 'window', 40, 12, 'black', 'true')</l>
+<l>    stop()</l>
+<l>endif</l>
+<c></c>
+<c>**********************求解圆心实际坐标**********************</c>
+<l>if (CircleOrEllipse)</l>
+<l>    gen_circle_contour_xld (Circle0_Inner, Circle0_Row, Circle0_Column, 16, 0, 4 * acos(0), 'positive', 1)   </l>
+<l>else</l>
+<l>    gen_ellipse_contour_xld (Circle0_Inner, Circle0_Row, Circle0_Column, Circle0_Phi, Circle0_Radius/2, Circle0_Radius2/2, Circle0_StartPhi, Circle0_EndPhi, 'positive', 1.5)</l>
+<l>endif</l>
+<c>*获取圆形轮廓上的像素值  </c>
+<l>get_contour_xld (Circle0_Inner, Circle0_Inner_Row, Circle0_Inner_Col)</l>
+<l>get_grayval (X, Circle0_Inner_Row, Circle0_Inner_Col, Circle0_XVal)</l>
+<l>get_grayval (Y, Circle0_Inner_Row, Circle0_Inner_Col, Circle0_YVal)</l>
+<l>get_grayval (Z, Circle0_Inner_Row, Circle0_Inner_Col, Circle0_ZVal)</l>
+<c>*移除像素值为0的值</c>
+<l>tuple_find (Circle0_XVal, 0, Circle0_XIndex)</l>
+<l>tuple_remove (Circle0_XVal, Circle0_XIndex, Circle0_XValReduced)</l>
+<l>tuple_find (Circle0_YVal, 0, Circle0_YIndex)</l>
+<l>tuple_remove (Circle0_YVal, Circle0_YIndex, Circle0_YValReduced)</l>
+<l>tuple_find (Circle0_ZVal, 0, Circle0_ZIndex)</l>
+<l>tuple_remove (Circle0_ZVal, Circle0_ZIndex, Circle0_ZValReduced)</l>
+<l>if (Circle0_XIndex!=-1 and Circle0_YIndex!=-1 and Circle0_ZIndex!=-1)</l>
+<l>    stop ()</l>
+<l>endif</l>
+<c>*求X/Y/Z平均值</c>
+<l>tuple_mean (Circle0_XValReduced, Circle0_XMean)</l>
+<l>tuple_mean (Circle0_YValReduced, Circle0_YMean)</l>
+<l>tuple_mean (Circle0_ZValReduced, Circle0_ZMean)</l>
+<l>create_pose (Circle0_XMean, Circle0_YMean, Circle0_ZMean, 0, 0, 0, 'Rp+T', 'gba', 'point', Cam_H_Circle_Temp)</l>
+<l>create_pose (Cam_H_Circle_Temp[0], Cam_H_Circle_Temp[1], Cam_H_Circle_Temp[2], \
+             Cam_H_Plane[3], Cam_H_Plane[4], Cam_H_Plane[5], 'Rp+T', 'gba', 'point', Cam_H_Circle_gba)</l>
+<c>*让Z轴向下</c>
+<l>create_pose (0, 0, 0, 0, 180, 0, 'Rp+T', 'gba', 'point', rotateY180) </l>
+<l>pose_compose (Cam_H_Circle_gba, rotateY180, Cam_H_Circle_gba)</l>
+<c>******************************************绘制构建的坐标系*****************************************</c>
+<l>create_pose (0, 0, 0, 0, 0, 0, 'Rp+T', 'gba', 'point', ZPose)    //Z轴位姿</l>
+<l>create_pose (0, 0, 0, 0, 90, 0, 'Rp+T', 'gba', 'point', XPose)   //X轴位姿</l>
+<l>create_pose (0, 0, 0, -90, 0, 0, 'Rp+T', 'gba', 'point', YPose)  //Y轴位姿</l>
+<c>*/绘制构建坐标系Z轴</c>
+<l>gen_cylinder_object_model_3d (ZPose, 0.25, 0, 100, ZObject)</l>
+<l>rigid_trans_object_model_3d (ZObject, Cam_H_Circle_gba, ZObjectCam)</l>
+<c>*/绘制构建坐标系X轴</c>
+<l>gen_cylinder_object_model_3d (XPose, 0.25, 0, 100, XObject)</l>
+<l>rigid_trans_object_model_3d (XObject, Cam_H_Circle_gba, XObjectCam)  </l>
+<c>*/绘制构建坐标系Y轴</c>
+<l>gen_cylinder_object_model_3d (YPose, 0.25, 0, 100, YObject)</l>
+<l>rigid_trans_object_model_3d (YObject, Cam_H_Circle_gba, YObjectCam)  </l>
+<l>gen_sphere_object_model_3d([Cam_H_Circle_gba[0],Cam_H_Circle_gba[1],Cam_H_Circle_gba[2],0,0,0,0],1,p1Sphere) </l>
+<l>* stop ()</l>
+<c>*显示坐标系和圆心</c>
+<l>visualize_object_model_3d (WindowHandle, [ObjectModel3D,ZObjectCam,XObjectCam,YObjectCam,p1Sphere],[], [], \
+                           ['intensity_0','color_1','color_2','color_3','color_4','disp_pose'],\
+                           ['&amp;intensity','blue','red','green','cyan','true'], \
+                           [], [], [], PoseOut2)</l>
+<c>*显示圆心</c>
+<l>visualize_object_model_3d (WindowHandle, [ObjectModel3D,p1Sphere],[], [], \
+                           ['intensity_0','color_1','disp_pose'],\
+                           ['&amp;intensity','red','true'], \
+                           [], [], [], PoseOut2)</l>
+<l>stop ()</l>
+<c></c>
+<c>**************************使用标定数据*************************</c>
+<l>convert_pose_type (Cam_H_Circle_gba, 'Rp+T', 'abg', 'point', Cam_H_Circle)</l>
+<l>* create_pose (142.207 , -547.068, 1877.13,  175.096, 6.766, 314.07, 'Rp+T', 'abg', 'point', Cam_H_Base)</l>
+<c>* [141.774, -545.166, 1877.71, 175.301, 6.82164, 314.111, 2]</c>
+<l>create_pose (141.774, -545.166, 1877.71, 175.301, 6.82164, 314.111, 'Rp+T', 'abg', 'point', Cam_H_Base)</l>
+<c></c>
+<l>pose_invert (Cam_H_Base, Base_H_Cam)</l>
+<l>pose_compose (Base_H_Cam, Cam_H_Circle, ObjInBasePose)</l>
+<c></c>
+<l>PI:=3.1415926</l>
+<c>*m转mm</c>
+<l>x:=ObjInBasePose[0]</l>
+<l>y:=ObjInBasePose[1]</l>
+<l>z:=ObjInBasePose[2]</l>
+<c>*度转弧度</c>
+<l>rx:=ObjInBasePose[3]*PI/180</l>
+<l>ry:=ObjInBasePose[4]*PI/180</l>
+<l>rz:=ObjInBasePose[5]*PI/180</l>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+<procedure name="calc_calplate_pose_stationarycam">
+<interface>
+<ic>
+<par name="CalObjInToolPose" base_type="ctrl" dimension="0"/>
+<par name="BaseInCamPose" base_type="ctrl" dimension="0"/>
+<par name="ToolInBasePose" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="CalObjInCamPose" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<c>* CalObjInCamPose = cam_H_calplate = cam_H_base * base_H_tool * tool_H_calplate</c>
+<c>*                               = BaseInCamPose*ToolInBasePose*CalObjInToolPose</c>
+<l>pose_compose (BaseInCamPose, ToolInBasePose, ToolInCamPose)</l>
+<l>pose_compose (ToolInCamPose, CalObjInToolPose, CalObjInCamPose)</l>
+<l>return ()</l>
+</body>
+<docu id="calc_calplate_pose_stationarycam">
+<short lang="en_US">compute cam_H_calplate from hand-eye calibration results</short>
+<short lang="zh_CN">compute cam_H_calplate from hand-eye calibration results</short>
+<parameters>
+<parameter id="BaseInCamPose"/>
+<parameter id="CalObjInCamPose"/>
+<parameter id="CalObjInToolPose"/>
+<parameter id="ToolInBasePose"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="cross_product">
+<interface>
+<ic>
+<par name="V1" base_type="ctrl" dimension="0"/>
+<par name="V2" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="CrossProduct" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<c>*计算向量外积:叉乘得到Z轴向量</c>
+<c>*设a=(X1,Y1,Z1),b=(X2,Y2,Z2),</c>
+<c>*a×b=(Y1Z2-Y2Z1,Z1X2-Z2X1,X1Y2-X2Y1)</c>
+<l>CrossProduct := [V1[1] * V2[2] - V1[2] * V2[1],V1[2] * V2[0] - V1[0] * V2[2],V1[0] * V2[1] - V1[1] * V2[0]]</l>
+<l>return ()</l>
+</body>
+<docu id="cross_product">
+<short lang="en_US">Calculates the cross product of the two vectors given in V1 and V2</short>
+<short lang="zh_CN">Calculates the cross product of the two vectors given in V1 and V2</short>
+<parameters>
+<parameter id="CrossProduct"/>
+<parameter id="V1"/>
+<parameter id="V2"/>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

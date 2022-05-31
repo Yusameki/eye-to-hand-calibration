@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="21.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c></c>
+<l>x:=     237.89</l>
+<l>y:=     -461.67</l>
+<l>z:=     167.97</l>
+<l>rx:=    46.98</l>
+<l>ry:=    -19.61</l>
+<l>rz:=    -78.39</l>
+<l>create_pose (x, y, z, rx, ry, rz, 'Rp+T', 'abg', 'point', Pose)</l>
+<l>write_pose (Pose, 'pose/robot_pose_14.dat')</l>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

@@ -1,0 +1,11 @@
+[2022-04-26 14:17:04.750] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage LJE-100: PFrame object is not successful
+[2022-04-26 14:17:09.384] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage LJE-100: PFrame object is nullptr
+[2022-04-26 14:17:11.105] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage LJE-100: PFrame object is nullptr
+[2022-04-28 17:12:06.756] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage LJE-100: PFrame object is not successful
+[2022-04-28 17:12:08.690] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage LJE-100: PFrame object is nullptr
+[2022-05-05 13:16:35.774] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage LJE-100: FrameID is a negativ number: -1
+[2022-05-05 13:17:25.804] [HALCON-spdlogger] [error] !!! FGOpen LJE-100: Scanner LJE-100 is not connected
+[2022-05-07 13:19:07.146] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage LJE-100: FrameID is a negativ number: -1
+[2022-05-07 13:20:09.851] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage LJE-100: PFrame object is not successful
+[2022-05-07 13:20:13.133] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage LJE-100: PFrame object is nullptr
+[2022-05-07 13:20:27.430] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage LJE-100: PFrame object is nullptr

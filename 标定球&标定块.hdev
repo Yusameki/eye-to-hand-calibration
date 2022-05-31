@@ -1,0 +1,487 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="21.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>************************************************************************/																													</c>
+<c>* 文件名称：自制标定板标定.hdev</c>
+<c>* 摘要：二维码做定位,查找圆心坐标,三点构建坐标系,手眼标定</c>
+<c>* 版本: 1.0 @ 2021_10-20 by 黄东洋</c>
+<c>机器人的位姿差异要大。</c>
+<c>姿势之间的旋转必须表现出至少两个不同的旋转轴。并且应至少为 30 度或更好的 60 度。</c>
+<c>************************************************************************/</c>
+<l>dev_update_off ()</l>
+<l>dev_close_window ()</l>
+<l>gen_cam_par_area_scan_division (0.0078066255, -0.121916, 0.00000345,0.00000345,1071.03,793.9,1440,1080, CamParam)</l>
+<l>get_cam_par_data (CamParam, 'image_width', ImageWidth)</l>
+<l>get_cam_par_data (CamParam, 'image_height', ImageHeight)</l>
+<l>WindowWidth := ImageWidth*3/5   //窗口大小要和图像大小成比例</l>
+<l>WindowHeight := ImageHeight*3/5</l>
+<l>dev_open_window (0, 0, WindowWidth, WindowHeight, 'black', WindowHandle)</l>
+<l>set_display_font (WindowHandle, 16, 'mono', 'true', 'false')</l>
+<l>dev_set_line_width (3)</l>
+<l>dev_set_color ('green')</l>
+<l>dev_set_draw ('margin')</l>
+<l>GenParamName := ['disp_pose','intensity']</l>
+<l>GenParamValue := ['true','&amp;intensity']</l>
+<c></c>
+<c>*创建手眼标定模型，如果使用3D相机则两个参数都必须设置为0</c>
+<l>create_calib_data ('hand_eye_stationary_cam', 0, 0, HECCalibDataID)</l>
+<c>*设置手眼校准过程中要使用的优化方法。如果设置了 DataValue = 'nonlinear'，则将非线性方法用于手眼校准</c>
+<c>*姿态最准确的优化方法是非线性方法</c>
+<l>set_calib_data (HECCalibDataID, 'model', 'general','optimization_method', 'nonlinear')  </l>
+<c></c>
+<c>*****************************创建球体模型***************************</c>
+<l>SphereRadius:=27.7</l>
+<l>gen_sphere_object_model_3d ([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0], SphereRadius, SphereOM3D)</l>
+<l>convex_hull_object_model_3d (SphereOM3D, SphereOM3D)</l>
+<c>*创建模板,法线</c>
+<l>create_surface_model (SphereOM3D, 0.02, 'model_invert_normals', 'true', SphereSurfaceModelID)</l>
+<c>* Visualize model for surface-based matching.</c>
+<l>get_surface_model_param (SphereSurfaceModelID, 'sampled_model', SphereSampledModel)</l>
+<l>Title := 'Calibration sphere that will be used for surface-based matching.'</l>
+<l>Title[|Title|] := 'Radius: ' + SphereRadius</l>
+<l>visualize_object_model_3d (WindowHandle, [SphereSampledModel,SphereOM3D], [], [], ['disp_pose','color','point_size','disp_normals','normal_color'], ['true','green',3,'true','gray'], Title, [], [], PoseOut)</l>
+<l>read_object_model_3d ('标定块', 'm', [], [], BoardOM3D, Status)</l>
+<c></c>
+<l>* read_object_model_3d ('biaodingkuai.stl', 'm', [], [], BoardOM3D, Status)</l>
+<c></c>
+<l>create_surface_model (BoardOM3D, 0.02, [], [], BoardSurfaceModelID)</l>
+<l>get_surface_model_param (BoardSurfaceModelID, 'sampled_model', BoardSampledModel)</l>
+<l>visualize_object_model_3d (WindowHandle, [BoardSampledModel], [], [], ['disp_pose','color','point_size','disp_normals','normal_color'], ['true','green',3,'true','gray'], [], [], [], PoseOut)</l>
+<c></c>
+<l>stop ()</l>
+<c>*ReadImage=1从相机读取图像</c>
+<c>*ReadImage=2从本地读取图像</c>
+<l>ReadImage :=2</l>
+<l>if(ReadImage=1)</l>
+<c>    *****************************************采集****************************************</c>
+<c>    * 设置相机参数</c>
+<c>    ** PhoXiControl must be running</c>
+<l>    AcqName := 'PhoXi'</l>
+<l>    info_framegrabber (AcqName, 'device', DeviceInfo, DeviceValues)</l>
+<c>    ** Connect to scanner via serial number or index in DeviceValues[idx]</c>
+<l>*     open_framegrabber (AcqName, 1, 1, 0, 0, 0, 0, 'default', -1, 'default', -1, 'false', 'default', 'biaodingqiu', -1, -1, AcqHandle)</l>
+<l>    open_framegrabber (AcqName, 1, 1, 0, 0, 0, 0, 'default', -1, 'default', -1, 'false', 'default', DeviceValues[0], -1, -1, AcqHandle)</l>
+<c>    ** Check which output data are supported (in PhoXiControl &gt; OutputStructure &gt; Mark desired data &gt; press Set)</c>
+<l>    get_framegrabber_param (AcqHandle, 'grab_data_items', AvailableDataToReturn)</l>
+<c>    ** Default is 'enabled' for both params</c>
+<l>    set_framegrabber_param (AcqHandle, 'use_grab_image_async_as_trigger_only', 'enable')</l>
+<l>    set_framegrabber_param (AcqHandle, 'wait_for_grabbing_end', 'enable')</l>
+<l>    GrabDataItems:=['Texture', 'PointCloud', 'NormalMap', 'DepthMap', 'ConfidenceMap']</l>
+<l>    set_framegrabber_param (AcqHandle, 'grab_data_items', GrabDataItems)</l>
+<l>endif</l>
+<c></c>
+<c></c>
+<c></c>
+<l>* RemoveNumber:=[]    //移除标定样本序号 XL相机 4和14为同一点,24和2728为同一点  </l>
+<l>RemoveNumber:=[]    //remove unused point</l>
+<l>NumCalibrationScenes := 20          //最大标定样本数量</l>
+<l>RealNumCalibrationScenes:=0         //真实标定样本数量</l>
+<l>Num:=[]   //每个样本对应序号---用于后面验证标定结果时,根据序号读取对应样本点云</l>
+<l>for I := 1 to NumCalibrationScenes by 1</l>
+<l>    tuple_find (RemoveNumber, I, RemoveNumberIndex)//查找需要移除的样本序号  </l>
+<l>    if(RemoveNumberIndex!=-1 and |RemoveNumberIndex|!=0)</l>
+<c>        *如果查找到有需要移除的样本,则该样本不需要进行标定</c>
+<l>        continue</l>
+<l>    endif</l>
+<l>    RealNumCalibrationScenes:=RealNumCalibrationScenes+1   //真实标定样本数量</l>
+<l>    Num:=[Num,I]   //样本对应序号</l>
+<l>    if(ReadImage=1) </l>
+<l>        grab_image_async (TextureImage, AcqHandle, 0)</l>
+<l>        grab_data_async (ImageData, Region, Contours, AcqHandle, 0, Data)</l>
+<c>        ** Order of objects must be preserved</c>
+<l>        select_obj (ImageData, Texture, 1)</l>
+<l>        select_obj (ImageData, PointCloud, 2) </l>
+<l>        select_obj (ImageData, Normals, 3)</l>
+<l>        select_obj (ImageData, DepthMap, 4)</l>
+<l>        select_obj (ImageData, ConfidenceMap, 5)</l>
+<c>        ** Transform from [mm] to [m]</c>
+<l>*         scale_image (PointCloud, PointCloud, 1e-3, 0)</l>
+<l>        decompose3 (PointCloud, X, Y, Z)</l>
+<l>        decompose3 (Normals, nX, nY, nZ)</l>
+<c>        ** Find the valid region</c>
+<l>        threshold (Z, RegionGood, 0, 5000)</l>
+<l>        reduce_domain (X, RegionGood, X)</l>
+<l>        reduce_domain (Y, RegionGood, Y)</l>
+<l>        reduce_domain (Z, RegionGood, Z)</l>
+<l>        reduce_domain (nX, RegionGood, nX)</l>
+<l>        reduce_domain (nY, RegionGood, nY)</l>
+<l>        reduce_domain (nZ, RegionGood, nZ)</l>
+<c>        ** Create object model and set normals and intensity</c>
+<l>        xyz_to_object_model_3d (X, Y, Z, ObjectModel3D)</l>
+<c>        ** set normal vectors</c>
+<l>        get_region_points (RegionGood, Rows, Columns)</l>
+<l>        get_grayval (nX, Rows, Columns, NX)</l>
+<l>        get_grayval (nY, Rows, Columns, NY)</l>
+<l>        get_grayval (nZ, Rows, Columns, NZ)</l>
+<l>        set_object_model_3d_attrib_mod (ObjectModel3D, ['point_normal_x','point_normal_y','point_normal_z'], [], [NX,NY,NZ])</l>
+<c>        **********************调整Texture图像类型及对比度***********************</c>
+<l>        min_max_gray (Texture, Texture, 0, Min, Max, Range)</l>
+<c>        */由于photoneo输出的图像为16bit(0-65535)图像</c>
+<c>        */缩放图像:实现灰度变换，像素调整至0-255</c>
+<l>        scale_image (Texture, ImageScaled, 0.06, 0)</l>
+<c>        */转换图像类型</c>
+<c>        */如果将大的灰度范围类型转换为小的灰度范围，如int2转为byte，</c>
+<c>        */太大或太小的数值被裁掉(每个像素灰度大于255是默认是255)。</c>
+<c>        */因此在用该算子前，先调用scale_image调整灰度范围。</c>
+<l>        convert_image_type (ImageScaled, Image8Bit, 'byte')</l>
+<c>        */调整图像对比度</c>
+<l>        scale_image (Image8Bit, Image, 6, 0)</l>
+<l>*         write_image (Image, 'png', 0, 'F:/test/calibrate_3D/自制标定板/ImageModel_diameter8.png')</l>
+<l>        get_grayval (Image, Rows, Columns, Intensity)</l>
+<l>        set_object_model_3d_attrib_mod (ObjectModel3D, '&amp;intensity', 'points', Intensity)</l>
+<l>        visualize_object_model_3d (WindowHandle, ObjectModel3D, CamParam, [], GenParamName, GenParamValue, [], [], [], Pose)  </l>
+<c>        ***********************保存点云进行离线标定*********************</c>
+<l>        SaveImage:=1</l>
+<l>        if(SaveImage==1)</l>
+<l>            dev_set_part (0, 0, ImageHeight, ImageWidth)//显示完整图像    </l>
+<l>            draw_region (Region, WindowHandle)</l>
+<l>            reduce_object_model_3d_by_view (Region, ObjectModel3D, CamParam, Pose, ObjectModel3D) </l>
+<l>            visualize_object_model_3d (WindowHandle, ObjectModel3D, CamParam, [], GenParamName, GenParamValue, [], [], [], Pose)</l>
+<c>            *只有保存为om3格式才能用'from_xyz_map'重投影生成X\Y\Z图像</c>
+<l>            write_object_model_3d (    ObjectModel3D,'om3','pointcloud/3d_CalBoarde_14.om3', [], [])</l>
+<l>*             write_object_model_3d (ObjectModel3D,'ply','pointcloud_XL0120/ply/3d_CalBoarde_28.ply', [], [])</l>
+<l>        endif</l>
+<l>    else   </l>
+<l>*         filename := 'pointcloud/CalibrateFile_' + I$'02d'</l>
+<l>                filename := 'pointcloud/3d_CalBoarde_' + I$'02d'</l>
+<c></c>
+<c>        */以m为单位读取点云文件</c>
+<l>        read_object_model_3d (filename,  'm', [], [], ObjectModel3D, Status)     </l>
+<l>*         visualize_object_model_3d (WindowHandle, ObjectModel3D, CamParam, [], GenParamName, GenParamValue, [], [], [], Pose)</l>
+<l>        object_model_3d_to_xyz (X, Y, Z, ObjectModel3D,'from_xyz_map', [], [])</l>
+<c>        *获取图像行列坐标</c>
+<l>        get_region_points (Z, CalBoard_Rows, CalBoard_Columns)</l>
+<c>        *获取点云灰度值</c>
+<l>        get_object_model_3d_params (ObjectModel3D, '&amp;intensity', intensity)</l>
+<c>        *直接创建byte类型的图像,find_data_code_2d输入图像要为byte类型</c>
+<l>        gen_image_const (Image, 'byte', 2064, 1544)</l>
+<c>        *将灰度值写入图像对应的行列坐标---拿到标定板图像</c>
+<l>        set_grayval (Image, CalBoard_Rows, CalBoard_Columns, intensity)</l>
+<l>        scale_image (Image, Image, 1, 0)</l>
+<l>        dev_display (Image)</l>
+<l>*         stop ()</l>
+<l>    endif</l>
+<c></c>
+<l>*             visualize_object_model_3d (WindowHandle, [ObjectModel3D], [], [], [GenParamName], [GenParamValue], [], [], [], VisPose)</l>
+<l>connection_object_model_3d (ObjectModel3D, ['distance_3d'], 2, ObjectModel3DConnected)</l>
+<l>select_object_model_3d (ObjectModel3DConnected, 'num_points', 'and', 200, 5000000, ObjectModel3DSelected)</l>
+<c>*联合连通域-&gt;将多个3D对象模型组合到新的3D对象模型中  </c>
+<l>union_object_model_3d (ObjectModel3DSelected, 'points_surface', UnionObjectModel3D)</l>
+<l>*             visualize_object_model_3d (WindowHandle, [UnionObjectModel3D], [], [], [GenParamName], [GenParamValue], [], [], [], VisPose)</l>
+<l>smooth_object_model_3d (UnionObjectModel3D, 'mls', [], [], SmoothObjectModel3D)    </l>
+<l>    find_surface_model (SphereSurfaceModelID, SmoothObjectModel3D, 0.05, 0.2, 0.15, 'false', [], [], Sphere_Cam_H_Obj, SphereScore, SphereSurfaceMatchingResultID)</l>
+<l>    Params := ['num_matches','scene_normal_computation','max_overlap_dist_rel','pose_ref_sub_sampling','scene_normal_computation','pose_ref_num_steps']</l>
+<l>    Values := [1,'mls',1,2,'mls',5]</l>
+<l>    find_surface_model (BoardSurfaceModelID, SmoothObjectModel3D, 0.02, 0.5, 0.1, 'false', Params,Values, Board_Cam_H_Obj, BoardScore, BoardSurfaceMatchingResultID)</l>
+<l>    if (|SphereScore|=1 and |BoardScore|=1)</l>
+<c>        *优化3D场景中曲面模型的姿态</c>
+<l>*         refine_surface_model_pose (SphereSurfaceModelID, SmoothObjectModel3D, Sphere_Cam_H_Obj, 0, 'false', [], [], Sphere_Cam_H_Obj, SphereScore, SphereSurfaceMatchingResultID1)</l>
+<l>*         convert_pose_type (Sphere_Cam_H_Obj, 'Rp+T', 'abg', 'point', Sphere_Cam_H_Obj_abg)//-360</l>
+<l>        rigid_trans_object_model_3d (SphereOM3D, Sphere_Cam_H_Obj, SphereOM3DRigidTrans)</l>
+<l>*         visualize_object_model_3d (WindowHandle, [ObjectModel3D,SphereOM3DRigidTrans], [], [], ['color_0','color_1','point_size'], ['gray','green',2], [], [], [], VisPose)</l>
+<l>*         refine_surface_model_pose (BoardSurfaceModelID, SmoothObjectModel3D, Board_Cam_H_Obj, 0, 'false', [], [], Board_Cam_H_Obj, BoardScore, BoardSurfaceMatchingResultID1)</l>
+<l>*         convert_pose_type (Board_Cam_H_Obj, 'Rp+T', 'abg', 'point', Board_Cam_H_Obj_abg)//-360</l>
+<l>        rigid_trans_object_model_3d (BoardOM3D, Board_Cam_H_Obj, BoardOM3DRigidTrans)</l>
+<c>        </c>
+<l>        Message := 'Scene: '</l>
+<l>        Message[1] := I + ' of ' + NumCalibrationScenes</l>
+<l>        dev_clear_window ()   </l>
+<l>        visualize_object_model_3d (WindowHandle, [SmoothObjectModel3D,SphereOM3DRigidTrans,BoardOM3DRigidTrans], [], [], ['intensity_0','color_1','color_2'], ['&amp;intensity','red','green'], [], [], Message, PoseOut1)    </l>
+<l>*         stop ()</l>
+<c></c>
+<l>        convert_pose_type (Sphere_Cam_H_Obj, 'Rp+T', 'abg', 'point', Sphere_Cam_H_Obj_abg)</l>
+<l>        convert_pose_type (Board_Cam_H_Obj, 'Rp+T', 'abg', 'point', Board_Cam_H_Obj_abg)</l>
+<c>        </c>
+<l>*         create_pose (Sphere_Cam_H_Obj[0], Sphere_Cam_H_Obj[1], Sphere_Cam_H_Obj[2],\ 
+        Board_Cam_H_Obj[3], Board_Cam_H_Obj[4], Board_Cam_H_Obj[5], 'Rp+T', 'gba', 'point', Cam_H_Obj)</l>
+<l>        create_pose (Sphere_Cam_H_Obj_abg[0], Sphere_Cam_H_Obj_abg[1], Sphere_Cam_H_Obj_abg[2],\ 
+                     Board_Cam_H_Obj_abg[3], Board_Cam_H_Obj_abg[4], Board_Cam_H_Obj_abg[5], 'Rp+T', 'abg', 'point', Cam_H_Obj_abg)</l>
+<c>        </c>
+<c>        *Transform from [mm] to [m]</c>
+<l>        Cam_H_Obj_m := Cam_H_Obj_abg</l>
+<l>        Cam_H_Obj_m[0:2] := Cam_H_Obj_m[0:2]/1000  //将单位改为m</l>
+<l>*         dev_inspect_ctrl (Cam_H_Obj)</l>
+<l>    else</l>
+<l>        disp_message (WindowHandle,  '标定物匹配失败', 'window', 40, 12, 'black', 'true')</l>
+<l>        stop ()</l>
+<l>    endif</l>
+<c>    </c>
+<c>    </c>
+<c>    ******************************************标定程序*****************************************</c>
+<l>    read_pose ('pose/robot_pose_' + I$'02d' + '.dat', Base_H_Tool)//读入的机器人ToolInBasePose为abg类型</l>
+<l>*         read_pose ('pose/CalibrateFile_' + I$'02d' + '.dat', Base_H_Tool)//读入的机器人ToolInBasePose为abg类型</l>
+<c></c>
+<c>    </c>
+<c>    *对于每个校准对象的位姿必须指定机器人工具的相应位姿-&gt;当前机械手法兰盘坐标系在基坐标系的位姿</c>
+<c>    *Transform from [mm] to [m]</c>
+<l>    Base_H_Tool_m := Base_H_Tool</l>
+<l>    Base_H_Tool_m[0:2] := Base_H_Tool_m[0:2] * 0.001//将单位改为m </l>
+<l>    if (|SphereScore|=1 and |BoardScore|=1)</l>
+<l>        set_calib_data (HECCalibDataID, 'tool', RealNumCalibrationScenes, 'tool_in_base_pose', Base_H_Tool_m)    //将ToolInBasePose(机器人工具的位姿)输入标定数据模型</l>
+<l>        set_calib_data_observ_pose (HECCalibDataID, 0, 0, RealNumCalibrationScenes, Cam_H_Obj_m)                 //将ObjInCamPose(校准对象的位姿)输入标定数据模型      </l>
+<l>    endif    </l>
+<l>    clear_object_model_3d ([ObjectModel3D,SphereOM3DRigidTrans,BoardOM3DRigidTrans])</l>
+<l>endfor</l>
+<c></c>
+<l>stop ()</l>
+<c></c>
+<l>check_hand_eye_calibration_input_poses (HECCalibDataID, 0.05, 0.005, Warnings)//5单位为mm,默认值0.005是以m为单位</l>
+<l>if (|Warnings| != 0)</l>
+<c>    * There were problem detected in the input poses. Inspect Warnings and</c>
+<c>    * remove erroneous poses with remove_calib_data and remove_calib_data_observ.</c>
+<l>    dev_inspect_ctrl (Warnings)</l>
+<l>    stop ()</l>
+<l>endif</l>
+<c></c>
+<l>dev_clear_window ()</l>
+<l>disp_message (WindowHandle, 'Performing the hand-eye calibration', 'window', 12, 12, 'black', 'true')</l>
+<c>*进行手眼标定-&gt;该算子实现了复杂的矩阵运算</c>
+<c>*1均方误差，单位为平方米/2旋转部份的均方根误差，单位为度/3平移部份的最大误差，单位为米/4旋转部份的最大误差，单位为度</c>
+<l>calibrate_hand_eye (HECCalibDataID, HECPoseError)    </l>
+<c>* Obtain the results of the hand-eye calibration and save them to file.</c>
+<l>get_calib_data (HECCalibDataID, 'camera', 0, 'base_in_cam_pose', Cam_H_Base)</l>
+<l>get_calib_data (HECCalibDataID, 'calib_obj', 0, 'obj_in_tool_pose', Tool_H_Obj)</l>
+<l>pose_invert (Cam_H_Base, Base_H_Cam) //该pose为abg类型</l>
+<l>write_pose (Base_H_Cam, 'campose.dat')</l>
+<c>*Transform from [mm] to [m]</c>
+<l>Cam_H_Base_mm:=Cam_H_Base //用这个位姿</l>
+<l>Cam_H_Base_mm[0:2]:=Cam_H_Base_mm[0:2]*1000</l>
+<c></c>
+<c>*******误差分析******</c>
+<c>*方法一：   </c>
+<c>*标定板在机器人法兰盘中位置是不变的,根据标定的结果,计算得到十几组标定板在法兰盘中的位置;从而分析误差。</c>
+<c>*方法二：</c>
+<c>*根据标定结果计算标定板理论位姿和实际位姿的距离</c>
+<l>X_Camera_Board:=[]</l>
+<l>Y_Camera_Board:=[]</l>
+<l>Z_Camera_Board:=[]</l>
+<l>X_Camera_Board_Trans:=[]</l>
+<l>Y_Camera_Board_Trans:=[]</l>
+<l>Z_Camera_Board_Trans:=[]</l>
+<c>*计算所有标定样本的误差时需要保存下列位姿</c>
+<c></c>
+<c></c>
+<l>for H := 1 to RealNumCalibrationScenes by 1</l>
+<l>    get_calib_data_observ_points (HECCalibDataID, 0, 0, H, Rowtemp, Columntemp, Index,Cam_H_Board)</l>
+<l>    X_Camera_Board:=[X_Camera_Board,Cam_H_Board[0]*1000]</l>
+<l>    Y_Camera_Board:=[Y_Camera_Board,Cam_H_Board[1]*1000]</l>
+<l>    Z_Camera_Board:=[Z_Camera_Board,Cam_H_Board[2]*1000]  </l>
+<l>    get_calib_data (HECCalibDataID, 'tool', H, 'tool_in_base_pose', Base_H_Tool)</l>
+<l>    pose_compose (Base_H_Tool, Tool_H_Obj, Base_H_Board)</l>
+<l>    pose_compose (Cam_H_Base, Base_H_Board, Cam_H_Board_Trans)</l>
+<l>    X_Camera_Board_Trans:=[X_Camera_Board_Trans,Cam_H_Board_Trans[0]*1000]</l>
+<l>    Y_Camera_Board_Trans:=[Y_Camera_Board_Trans,Cam_H_Board_Trans[1]*1000]</l>
+<l>    Z_Camera_Board_Trans:=[Z_Camera_Board_Trans,Cam_H_Board_Trans[2]*1000]</l>
+<l>endfor</l>
+<c>* Calculate difference of corresponding coordinates.</c>
+<l>X_diff := X_Camera_Board_Trans - X_Camera_Board</l>
+<l>Y_diff := Y_Camera_Board_Trans - Y_Camera_Board</l>
+<l>Z_diff := Z_Camera_Board_Trans - Z_Camera_Board</l>
+<l>PoseErr := sqrt(X_diff * X_diff + Y_diff * Y_diff + Z_diff * Z_diff)//计算真实点和虚拟点的距离</l>
+<l>PoseErrMean := mean(PoseErr)</l>
+<l>PoseErrMax := max(PoseErr)</l>
+<c>* </c>
+<l>dev_open_window (0, WindowWidth + 10, 400, 800, 'black', WindowHandleText)</l>
+<l>set_display_font (WindowHandleText, 16, 'mono', 'true', 'false')</l>
+<l>Text := 'Mean error of poses: ' + (PoseErrMean)$'.5f' + ' mm'</l>
+<l>Text[|Text|] := 'Max error of poses: ' + (PoseErrMax)$'.5f' + ' mm'</l>
+<l>Text := [Text,[1:RealNumCalibrationScenes ] + ': ' + (PoseErr)$'.3f' + ' mm']</l>
+<l>Text := [Text,Warnings]</l>
+<l>dev_disp_text (Text, 'window', 'top', 'left', 'white', 'box', 'false')</l>
+<c>* </c>
+<l>stop ()</l>
+<l>dev_set_window (WindowHandle)</l>
+<l>dev_clear_window ()</l>
+<c>* Display calibration errors of the hand-eye calibration.</c>
+<l>Message := 'Quality of the results:'</l>
+<l>Message[1] := ' '</l>
+<l>Message[2] := 'Translation errors in mm: '</l>
+<l>MeanTransError := HECPoseError[0] * 1000</l>
+<l>MaxTransError := HECPoseError[2] * 1000</l>
+<l>Message[3] := 'root mean square    ' + MeanTransError$'6.4f'</l>
+<l>Message[4] := 'maximum             ' + MaxTransError$'6.4f'</l>
+<l>Message[5] := ' '</l>
+<l>Message[6] := 'Rotation error in degrees:        '</l>
+<l>Message[7] := 'root mean square    ' + HECPoseError[1]$'6.4f'</l>
+<l>Message[8] := 'maximum             ' + HECPoseError[3]$'6.4f'</l>
+<l>disp_message (WindowHandle, Message, 'window', 12, 12, 'black', 'true')</l>
+<l>disp_continue_message (WindowHandle, 'black', 'true')</l>
+<c></c>
+<c>**********优化标定精度**********</c>
+<c>*如果发现标定得到的理论机器人坐标系和实际机器人坐标系之间差了一个刚体变换则可以用这个方法</c>
+<c>*求解位姿变换的SVD方法(3D-3D)</c>
+<c>*PX/PY/PZ,为点在手眼标定后理论机器人坐标系base1下的位姿</c>
+<c>*QX/QY/QZ,为点在实际机器人坐标系base0下的位姿</c>
+<c>*计算结果为base0Hbase1</c>
+<l>* PX := [403.828,   106.623,  362.584,  408.359,   487.089,  407.68,   226.674,  197.654]</l>
+<l>* PY := [518.594,  601.532,  462.763,  468.778,   311.702,  601.613,   505.887,  697.419]</l>
+<l>* PZ := [353.294,  46.7895,  51.2599,  259.128,   255.891,  258.434,   14.3224,  16.7146]</l>
+<l>* QX := [223.73,   106.58,   363,      408.6,     487.68,   407.91,   226.39,   197.75]</l>
+<l>* QY := [560.86,   602.37,   463.1,    468.31,    311.11,   601.39,   505.89,   698.57]</l>
+<l>* QZ := [44.98,    46.84,    51.1,     259.47,    255.98,   259.02,   13.81,    16.45]</l>
+<l>PX := [403.828,   293.704,  402.426,   509.553]</l>
+<l>PY := [518.594,   591.727,  452.279,   431.219]</l>
+<l>PZ := [353.294,   351.827,  292.162,   293.4]</l>
+<l>QX := [404.78,    294.4,    402.92,    510.4]</l>
+<l>QY := [518.22,    591.44,   452.14,    430.88]</l>
+<l>QZ := [354.19,    352.9,    292.81,    294.05]</l>
+<c></c>
+<l>vector_to_hom_mat3d ('rigid',PX, PY, PZ, QX, QY, QZ, HomMat3d_Base0_H_Base1)</l>
+<l>hom_mat3d_to_pose (HomMat3d_Base0_H_Base1, Base0_H_Base1_gba)</l>
+<l>convert_pose_type (Base0_H_Base1_gba, 'Rp+T', 'abg', 'point', Base0_H_Base1_abg)</l>
+<c>**************************使用标定数据*************************</c>
+<c>*</c>
+<c>上层</c>
+<l>create_pose (-22.412, -473.313, 1212.96,  171.584, 9.00394, 313.909, 'Rp+T', 'abg', 'point', Cam_H_Base1_mm)</l>
+<c></c>
+<c>*M</c>
+<l>create_pose (-22.3751 , -473.555, 1213.05,  171.599, 9.02016, 313.876, 'Rp+T', 'abg', 'point', Cam_H_Base1_mm)</l>
+<c>*photoneo_M标定</c>
+<c></c>
+<l>create_pose (-22.866 , -472.247, 1212.91,  171.476, 8.93617, 313.839, 'Rp+T', 'abg', 'point', Cam_H_Base1_mm)</l>
+<c></c>
+<l>pose_invert (Cam_H_Base1_mm, Base1_H_Cam)</l>
+<l>pose_compose (Base0_H_Base1_abg, Base1_H_Cam, Base0_H_Cam)</l>
+<c></c>
+<c>******photoneo标定******</c>
+<c></c>
+<l>* HomMat3DIdentity:=[-0.685836	,0.716935,0.125032,-342.019,\
+                    0.712719, 0.696423,-0.0838278,14.38,\
+                   -0.147174,0.0316204,-0.988605,2339]</l>
+<l>* HomMat3DIdentity:=[-0.686217	,0.716652,0.124567,-340.893,\
+                    0.712285, 0.69676,-0.0847083,16.0793,\
+                   -0.1475, 0.0305992,-0.988589,2339.01]</l>
+<l>* HomMat3DIdentity:=[0.684021	,-0.712615,-0.155869,-132.332,\
+                    -0.698367, -0.70146,0.142255,-522.201,\
+                   -0.210709, 0.0115481,-0.977481,1185.62]</l>
+<l>HomMat3DIdentity:=[0.691127	,-0.712906,-0.118779,-263.604,\
+                    -0.708803, -0.700701,0.0813351,-434.232,\
+                   -0.141213, 0.0279778,-0.989584,1893.42]</l>
+<c></c>
+<l>hom_mat3d_to_pose (HomMat3DIdentity, Base_H_Cam_Photoneo_gba)</l>
+<l>convert_pose_type (Base_H_Cam_Photoneo_gba, 'Rp+T', 'abg', 'point', Base_H_Cam_Photoneo)</l>
+<l>pose_invert (Base_H_Cam_Photoneo, Cam_H_Base_Photoneo)</l>
+<l>create_pose (0, 0, 0, 0, 0, 0, 'Rp+T', 'abg', 'point', objHobj_Zup)//标定得到的Z值不准;让标定针下移3mm</l>
+<l>* pose_compose (Cam_H_Board_abg, objHobj_Zup, PoseCompose_objnew)</l>
+<l>* pose_compose (Base_H_Cam_Photoneo, Cam_H_Board_abg_RZ0, ObjInBasePose)</l>
+<l>PI:=3.1415926</l>
+<c>*m转mm</c>
+<l>x:=ObjInBasePose[0]</l>
+<l>y:=ObjInBasePose[1]</l>
+<l>z:=ObjInBasePose[2]</l>
+<c>*度转弧度</c>
+<l>rx:=ObjInBasePose[3]*PI/180</l>
+<l>ry:=ObjInBasePose[4]*PI/180</l>
+<l>rz:=ObjInBasePose[5]*PI/180</l>
+<c></c>
+<c></c>
+<c>*计算夹具TCP</c>
+<c>*tool0Hgripper=tool0Hbase0*base0Hgripper(=base0Hobj)</c>
+<l>create_pose (137.78, 572.19, 164.93, 179.79, -0.59, 40.48, 'Rp+T', 'abg', 'point', base0Htool0)</l>
+<l>pose_invert (base0Htool0, tool0Hbase0)</l>
+<l>pose_compose (tool0Hbase0, ObjInBasePose, tool0Hgripper)</l>
+<c>*XL</c>
+<c></c>
+<l>create_pose (-22.866/1000 , -472.247/1000, 1212.91/1000, 171.476, 8.93617, 313.839, 'Rp+T', 'abg', 'point', Cam_H_Base)</l>
+<l>create_pose (0.0488164 , 0.00942604, 0.0506964, 180.179, 0.156564, 90.4425, 'Rp+T', 'abg', 'point', Tool_H_Obj)</l>
+<c></c>
+<l>stop ()</l>
+<c></c>
+<c>**************************************验证标定矩阵**************************************</c>
+<l>query_calib_data_observ_indices (HECCalibDataID, 'camera', 0, CalibObjIdx, PoseIds)</l>
+<c></c>
+<l>* dev_clear_window ()</l>
+<l>NumCalibrationScenes:=20</l>
+<l>for J := 1 to NumCalibrationScenes by 1</l>
+<c>    </c>
+<l>    filename := 'pointcloud/3d_CalBoarde_' + J$'02d'</l>
+<l>    read_object_model_3d (filename, 0.001, [], [], ObjectModel3D, Status1)</l>
+<l>*     get_calib_data (HECCalibDataID, 'tool', PoseIds[J - 1], 'tool_in_base_pose', ToolInBasePose)</l>
+<l>    read_pose ('pose/robot_pose_' + J$'02d' + '.dat', ToolInBasePose)//读入的机器人ToolInBasePose为abg类型</l>
+<c>    *将位姿的XYZ值改为以m为单位</c>
+<l>    ToolInBasePose[0:2] := ToolInBasePose[0:2] * 0.001//将单位改为m </l>
+<c>    *利用标定得到的Tool_H_Board、Cam_H_Base，以及ToolInBasePose，反推出CalObjInCamPose</c>
+<l>    calc_calplate_pose_stationarycam (Tool_H_Obj, Cam_H_Base, ToolInBasePose, CalObjInCamPose)</l>
+<l>    CalObjInCamPoseTemp := CalObjInCamPose</l>
+<l>    CalObjInCamPoseTemp[0:2] := CalObjInCamPoseTemp[0:2]*1000  //将单位改为mm</l>
+<l>    rigid_trans_object_model_3d (SphereOM3D, CalObjInCamPoseTemp, SphereOM3DRigidTrans_Test)</l>
+<l>    Message := 'CalBoard: '</l>
+<l>    Message[1] := J + ' of ' + NumCalibrationScenes</l>
+<c>    *显示标定球</c>
+<l>    visualize_object_model_3d (WindowHandle, [ObjectModel3D,SphereOM3DRigidTrans_Test],[], [], \
+                               ['intensity_0','color_1','disp_pose'],\
+                               ['&amp;intensity','red','true'], \
+                               [], [], [Message], PoseOut2)</l>
+<l>    clear_object_model_3d (ObjectModel3D)</l>
+<l>endfor</l>
+<c>* Clear the data models.</c>
+<l>* clear_calib_data (HECCalibDataID)</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+<procedure name="calc_calplate_pose_stationarycam">
+<interface>
+<ic>
+<par name="CalObjInToolPose" base_type="ctrl" dimension="0"/>
+<par name="BaseInCamPose" base_type="ctrl" dimension="0"/>
+<par name="ToolInBasePose" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="CalObjInCamPose" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<c>* CalObjInCamPose = cam_H_calplate = cam_H_base * base_H_tool * tool_H_calplate</c>
+<c>*                               = BaseInCamPose*ToolInBasePose*CalObjInToolPose</c>
+<l>pose_compose (BaseInCamPose, ToolInBasePose, ToolInCamPose)</l>
+<l>pose_compose (ToolInCamPose, CalObjInToolPose, CalObjInCamPose)</l>
+<l>return ()</l>
+</body>
+<docu id="calc_calplate_pose_stationarycam">
+<short lang="en_US">compute cam_H_calplate from hand-eye calibration results</short>
+<short lang="zh_CN">compute cam_H_calplate from hand-eye calibration results</short>
+<parameters>
+<parameter id="BaseInCamPose"/>
+<parameter id="CalObjInCamPose"/>
+<parameter id="CalObjInToolPose"/>
+<parameter id="ToolInBasePose"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="cross_product">
+<interface>
+<ic>
+<par name="V1" base_type="ctrl" dimension="0"/>
+<par name="V2" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="CrossProduct" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<c>*计算向量外积:叉乘得到Z轴向量</c>
+<c>*设a=(X1,Y1,Z1),b=(X2,Y2,Z2),</c>
+<c>*a×b=(Y1Z2-Y2Z1,Z1X2-Z2X1,X1Y2-X2Y1)</c>
+<l>CrossProduct := [V1[1] * V2[2] - V1[2] * V2[1],V1[2] * V2[0] - V1[0] * V2[2],V1[0] * V2[1] - V1[1] * V2[0]]</l>
+<l>return ()</l>
+</body>
+<docu id="cross_product">
+<short lang="en_US">Calculates the cross product of the two vectors given in V1 and V2</short>
+<short lang="zh_CN">Calculates the cross product of the two vectors given in V1 and V2</short>
+<parameters>
+<parameter id="CrossProduct"/>
+<parameter id="V1"/>
+<parameter id="V2"/>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>
