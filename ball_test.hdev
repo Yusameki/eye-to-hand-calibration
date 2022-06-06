@@ -245,6 +245,7 @@
 <c>**********************************calc distance******************************************</c>
 <c></c>
 <l>create_pose (0.17, -0.05, 1.71, 35, 13, 225, 'Rp+T', 'abg', 'point', Cam2Obj)</l>
+<l>* read_pose('campose.dat', Pose)</l>
 <c></c>
 <c>* init parameter</c>
 <l>X_Cam2Obj := []</l>
@@ -285,13 +286,13 @@
 <c></c>
 <c>* calc ReBase2Obj</c>
 <l>correctionname := 'Repose/Re_Cam2Base_' + MinDistance$'02d' + '.dat'</l>
-<l>read_pose (correctionname, CoCam2Base)</l>
+<l>read_pose (correctionname, CoCam2Base) </l>
 <c></c>
 <l>pose_invert (CoCam2Base, CoBase2Cam)</l>
 <l>pose_compose (CoBase2Cam, Cam2Obj, CoBase2Obj)</l>
 <c></c>
 <c></c>
-<c></c>
+<l>test_Pose1 := CoCam2Base</l>
 <c></c>
 <c></c>
 <c></c>
