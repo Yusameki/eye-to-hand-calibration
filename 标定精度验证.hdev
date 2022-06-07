@@ -186,6 +186,57 @@
 <l>ry:=ObjInBasePose[4]*PI/180</l>
 <l>rz:=ObjInBasePose[5]*PI/180</l>
 <c></c>
+<c></c>
+<c>**********************************calc distance******************************************</c>
+<c></c>
+<l>* create_pose (0.17, -0.05, 1.71, 35, 13, 225, 'Rp+T', 'abg', 'point', Cam2Obj)</l>
+<l>Cam2Obj := Cam_H_Circle</l>
+<c></c>
+<c>* init parameter</c>
+<l>X_Cam2Obj := []</l>
+<l>Y_Cam2Obj := []</l>
+<l>Z_Cam2Obj := []</l>
+<l>X_ReCam2Obj :=[]</l>
+<l>Y_ReCam2Obj := []</l>
+<l>Z_ReCam2Obj := []</l>
+<c></c>
+<l>NumCalibrationScenes := 20</l>
+<c></c>
+<c>* prepare for calc distance</c>
+<l>for H := 1 to NumCalibrationScenes by 1</l>
+<c>    *read Real Cam2Obj pose from files</c>
+<l>    resultname := 'Repose/Re_Cam2Obj_' + H$'02d' + '.dat'</l>
+<l>    read_pose (resultname,Re_Cam2Obj)</l>
+<l>    X_Cam2Obj := [X_Cam2Obj, Cam2Obj[0] * 1000]</l>
+<l>    Y_Cam2Obj := [Y_Cam2Obj, Cam2Obj[1] * 1000]</l>
+<l>    Z_Cam2Obj := [Z_Cam2Obj, Cam2Obj[2] * 1000]</l>
+<c></c>
+<l>    X_ReCam2Obj := [X_ReCam2Obj, Re_Cam2Obj[0]]</l>
+<l>    Y_ReCam2Obj := [Y_ReCam2Obj, Re_Cam2Obj[1]]</l>
+<l>    Z_ReCam2Obj := [Z_ReCam2Obj, Re_Cam2Obj[2]]</l>
+<c>      </c>
+<l>endfor </l>
+<c></c>
+<c>* Calculate obj distance</c>
+<l>X_diff := X_Cam2Obj - X_ReCam2Obj</l>
+<l>Y_diff := Y_Cam2Obj - Y_ReCam2Obj</l>
+<l>Z_diff := Z_Cam2Obj - Z_ReCam2Obj</l>
+<l>PoseDistance := sqrt(X_diff * X_diff + Y_diff * Y_diff + Z_diff * Z_diff)</l>
+<c></c>
+<c>* select min distance point</c>
+<l>tuple_sort_index (PoseDistance, PoseDistanceIndices)</l>
+<l>* tuple_sort (PoseErr, Sorted)</l>
+<l>* tuple_sort_index (Sorted, Indices1)</l>
+<l>MinDistance := PoseDistanceIndices[0] + 1</l>
+<c></c>
+<c>* calc ReBase2Obj</c>
+<l>correctionname := 'Repose/Re_Cam2Base_' + MinDistance$'02d' + '.dat'</l>
+<l>read_pose (correctionname, CoCam2Base)</l>
+<c></c>
+<l>pose_invert (CoCam2Base, CoBase2Cam)</l>
+<l>pose_compose (CoBase2Cam, Cam2Obj, CoBase2Obj)</l>
+<c></c>
+<c></c>
 </body>
 <docu id="main">
 <parameters/>
