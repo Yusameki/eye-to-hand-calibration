@@ -9,3 +9,7 @@
 [2022-05-07 13:20:09.851] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage LJE-100: PFrame object is not successful
 [2022-05-07 13:20:13.133] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage LJE-100: PFrame object is nullptr
 [2022-05-07 13:20:27.430] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage LJE-100: PFrame object is nullptr
+[2022-06-07 17:35:31.216] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage DVA-135: PFrame object is nullptr
+[2022-06-07 17:36:12.905] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage DVA-135: PFrame object is nullptr
+[2022-06-07 17:37:06.870] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage DVA-135: PFrame object is nullptr
+[2022-06-07 17:37:52.736] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage DVA-135: PFrame object is nullptr

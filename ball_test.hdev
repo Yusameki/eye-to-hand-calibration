@@ -46,11 +46,11 @@
 <c></c>
 <l>stop ()</l>
 <c></c>
-<l>calibration := 1</l>
+<l>calibration := 0</l>
 <c></c>
 <l>if(calibration=1)</l>
 <l>    RemoveNumber:=[]    //remove unused point</l>
-<l>    NumCalibrationScenes := 20          //max point num</l>
+<l>    NumCalibrationScenes := 21          //max point num</l>
 <l>    RealNumCalibrationScenes:=0         //real calibration point number</l>
 <l>    Num:=[]   //每个样本对应序号---用于后面验证标定结果时,根据序号读取对应样本点云</l>
 <l>    for I := 1 to NumCalibrationScenes by 1</l>
@@ -170,7 +170,7 @@
 <c></c>
 <l>Cam2BaseTemp := Cam2Base</l>
 <c></c>
-<l>NumCalibrationScenes:=20</l>
+<l>NumCalibrationScenes:=21</l>
 <l>for J := 1 to NumCalibrationScenes by 1</l>
 <c>    </c>
 <l>    filename := 'pointcloud/3d_CalBoarde_' + J$'02d'</l>
@@ -255,7 +255,7 @@
 <l>Y_ReCam2Obj := []</l>
 <l>Z_ReCam2Obj := []</l>
 <c></c>
-<l>NumCalibrationScenes := 20</l>
+<l>NumCalibrationScenes := 21</l>
 <c></c>
 <c>* prepare for calc distance</c>
 <l>for H := 1 to NumCalibrationScenes by 1</l>
@@ -290,9 +290,6 @@
 <c></c>
 <l>pose_invert (CoCam2Base, CoBase2Cam)</l>
 <l>pose_compose (CoBase2Cam, Cam2Obj, CoBase2Obj)</l>
-<c></c>
-<c></c>
-<l>test_Pose1 := CoCam2Base</l>
 <c></c>
 <c></c>
 <c></c>
