@@ -4,14 +4,14 @@
 <interface/>
 <body>
 <c></c>
-<l>x:=     237.89</l>
-<l>y:=     -461.67</l>
-<l>z:=     167.97</l>
-<l>rx:=    46.98</l>
-<l>ry:=    -19.61</l>
-<l>rz:=    -78.39</l>
+<l>x:=     -498.6</l>
+<l>y:=     205.65</l>
+<l>z:=     217.11</l>
+<l>rx:=    -6.51</l>
+<l>ry:=    -26.97</l>
+<l>rz:=    76.93</l>
 <l>create_pose (x, y, z, rx, ry, rz, 'Rp+T', 'abg', 'point', Pose)</l>
-<l>write_pose (Pose, 'pose/robot_pose_14.dat')</l>
+<l>write_pose (Pose, 'pose/robot_pose_01.dat')</l>
 <c></c>
 </body>
 <docu id="main">

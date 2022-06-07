@@ -7,11 +7,11 @@
 <l>dev_close_window ()</l>
 <c></c>
 <c>* preparation</c>
-<l>gen_cam_par_area_scan_division (0.0078066255, -0.121916, 0.00000345,0.00000345,1071.03,793.9,1440,1080, CamParam)</l>
+<l>gen_cam_par_area_scan_division (0.0078066255, -0.121916, 0.00000345,0.00000345,1071.03,793.9,2064,1544, CamParam)</l>
 <l>get_cam_par_data (CamParam, 'image_width', ImageWidth)</l>
 <l>get_cam_par_data (CamParam, 'image_height', ImageHeight)</l>
-<l>WindowWidth := ImageWidth*11/20</l>
-<l>WindowHeight := ImageHeight*11/20</l>
+<l>WindowWidth := ImageWidth*7/20</l>
+<l>WindowHeight := ImageHeight*7/20</l>
 <l>dev_open_window (0, 0, WindowWidth, WindowHeight, 'black', WindowHandle)</l>
 <l>set_display_font (WindowHandle, 16, 'mono', 'true', 'false')</l>
 <l>dev_set_line_width (3)</l>
@@ -46,7 +46,7 @@
 <c></c>
 <l>stop ()</l>
 <c></c>
-<l>calibration := 0</l>
+<l>calibration := 1</l>
 <c></c>
 <l>if(calibration=1)</l>
 <l>    RemoveNumber:=[]    //remove unused point</l>
@@ -72,7 +72,7 @@
 <c>        *获取点云灰度值</c>
 <l>        get_object_model_3d_params (ObjectModel3D, '&amp;intensity', intensity)</l>
 <c>        *直接创建byte类型的图像,find_data_code_2d输入图像要为byte类型</c>
-<l>        gen_image_const (Image, 'byte', 1440, 1080)</l>
+<l>        gen_image_const (Image, 'byte', 2064, 1544)</l>
 <c>        *将灰度值写入图像对应的行列坐标---拿到标定板图像</c>
 <l>        set_grayval (Image, CalBoard_Rows, CalBoard_Columns, intensity)</l>
 <l>        scale_image (Image, Image, 1, 0)</l>

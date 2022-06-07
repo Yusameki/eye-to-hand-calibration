@@ -12,11 +12,11 @@
 <c>************************************************************************/</c>
 <l>dev_update_off ()</l>
 <l>dev_close_window ()</l>
-<l>gen_cam_par_area_scan_division (0.0078066255, -0.121916, 0.00000345,0.00000345,1071.03,793.9,1440,1080, CamParam)</l>
+<l>gen_cam_par_area_scan_division (0.0078066255, -0.121916, 0.00000345,0.00000345,1071.03,793.9,2064,1544, CamParam)</l>
 <l>get_cam_par_data (CamParam, 'image_width', ImageWidth)</l>
 <l>get_cam_par_data (CamParam, 'image_height', ImageHeight)</l>
-<l>WindowWidth := ImageWidth*3/5   //窗口大小要和图像大小成比例</l>
-<l>WindowHeight := ImageHeight*3/5</l>
+<l>WindowWidth := ImageWidth*8/20</l>
+<l>WindowHeight := ImageHeight*8/20</l>
 <l>dev_open_window (0, 0, WindowWidth, WindowHeight, 'black', WindowHandle)</l>
 <l>set_display_font (WindowHandle, 16, 'mono', 'true', 'false')</l>
 <l>dev_set_line_width (3)</l>
@@ -53,7 +53,7 @@
 <l>stop ()</l>
 <c>*ReadImage=1从相机读取图像</c>
 <c>*ReadImage=2从本地读取图像</c>
-<l>ReadImage :=1</l>
+<l>ReadImage :=2</l>
 <l>if(ReadImage=1)</l>
 <c>    *****************************************采集****************************************</c>
 <c>    * 设置相机参数</c>
@@ -76,7 +76,7 @@
 <c></c>
 <l>* RemoveNumber:=[]    //移除标定样本序号 XL相机 4和14为同一点,24和2728为同一点  </l>
 <l>RemoveNumber:=[]    //remove unused point</l>
-<l>NumCalibrationScenes := 20          //最大标定样本数量</l>
+<l>NumCalibrationScenes := 21          //最大标定样本数量</l>
 <l>RealNumCalibrationScenes:=0         //真实标定样本数量</l>
 <l>Num:=[]   //每个样本对应序号---用于后面验证标定结果时,根据序号读取对应样本点云</l>
 <l>for I := 1 to NumCalibrationScenes by 1</l>
@@ -140,7 +140,8 @@
 <l>            reduce_object_model_3d_by_view (Region, ObjectModel3D, CamParam, Pose, ObjectModel3D) </l>
 <l>            visualize_object_model_3d (WindowHandle, ObjectModel3D, CamParam, [], GenParamName, GenParamValue, [], [], [], Pose)</l>
 <c>            *只有保存为om3格式才能用'from_xyz_map'重投影生成X\Y\Z图像</c>
-<l>            write_object_model_3d (    ObjectModel3D,'om3','pointcloud/3d_CalBoarde_14.om3', [], [])</l>
+<l>*             stop()</l>
+<l>            write_object_model_3d (    ObjectModel3D,'om3','pointcloud/3d_CalBoarde_01.om3', [], [])</l>
 <l>*             write_object_model_3d (ObjectModel3D,'ply','pointcloud_XL0120/ply/3d_CalBoarde_28.ply', [], [])</l>
 <l>        endif</l>
 <l>    else   </l>
