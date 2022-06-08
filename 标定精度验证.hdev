@@ -11,8 +11,8 @@
 <l>gen_cam_par_area_scan_division (0.0078066255, -0.121916, 0.00000345,0.00000345,1071.03,793.9,2064,1544, CamParam)</l>
 <l>get_cam_par_data (CamParam, 'image_width', ImageWidth)</l>
 <l>get_cam_par_data (CamParam, 'image_height', ImageHeight)</l>
-<l>WindowWidth := ImageWidth*3/5   //窗口大小要和图像大小成比例</l>
-<l>WindowHeight := ImageHeight*3/5</l>
+<l>WindowWidth := ImageWidth*7/20   //窗口大小要和图像大小成比例</l>
+<l>WindowHeight := ImageHeight*7/20</l>
 <l>dev_open_window (0, 0, WindowWidth, WindowHeight, '#0A6697', WindowHandle)</l>
 <l>set_display_font (WindowHandle, 16, 'mono', 'true', 'false')</l>
 <l>dev_set_line_width (3)</l>
