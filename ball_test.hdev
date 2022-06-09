@@ -7,7 +7,8 @@
 <l>dev_close_window ()</l>
 <c></c>
 <c>* preparation</c>
-<l>gen_cam_par_area_scan_division (0.0078066255, -0.121916, 0.00000345,0.00000345,1071.03,793.9,2064,1544, CamParam)</l>
+<l>gen_cam_par_area_scan_division (0.008, 0, 5.2e-06,5.2e-06,1071.3,793.9,2064,1544, CamParam)</l>
+<l>* gen_cam_par_area_scan_division (0.0078066255, -0.121916, 0.00000345,0.00000345,1071.03,793.9,2064,1544, CamParam)</l>
 <l>get_cam_par_data (CamParam, 'image_width', ImageWidth)</l>
 <l>get_cam_par_data (CamParam, 'image_height', ImageHeight)</l>
 <l>WindowWidth := ImageWidth*7/20</l>
@@ -46,7 +47,7 @@
 <c></c>
 <l>stop ()</l>
 <c></c>
-<l>calibration := 0</l>
+<l>calibration := 1</l>
 <c></c>
 <l>if(calibration=1)</l>
 <l>    RemoveNumber:=[]    //remove unused point</l>
@@ -155,6 +156,8 @@
 <c>    </c>
 <l>    write_pose (Cam_H_Base, 'results/Cam_H_Base.dat')</l>
 <l>    write_pose (Tool_H_Obj, 'results/Tool_H_Obj.dat')</l>
+<l>    Cam2Base := Cam_H_Base</l>
+<l>    Tool2Obj := Tool_H_Obj</l>
 <c>    </c>
 <l>else</l>
 <l>    read_pose ('results/Cam_H_Base.dat', Cam2Base)</l>
@@ -199,12 +202,12 @@
 <c>    *set pose to 3d ball model</c>
 <l>    rigid_trans_object_model_3d (SphereOM3D, ReCam2Obj, SphereOM3DRigidTrans_Test2)</l>
 <c>    </c>
-<c>    *pose invert</c>
+<c>    *pose invert </c>
 <l>    pose_invert (Base2Tool, Tool2Base)</l>
 <l>    pose_invert (Tool2Obj, Obj2Tool)</l>
 <c>    </c>
 <c>    *change format to m</c>
-<l>    ReCam2Obj[0:2] := ReCam2Obj[0:2]/1000</l>
+<l>    ReCam2Obj[0:2] := ReCam2Obj[0:2]*0.001</l>
 <c>        </c>
 <c>    *cam2obj*obj2tool*tool2base = cam2base</c>
 <l>    pose_compose (ReCam2Obj, Obj2Tool, ReCam2Tool)</l>
@@ -213,7 +216,7 @@
 <l>    savename := 'Repose/Re_Cam2Base_' + J$'02d' + '.dat'</l>
 <l>    write_pose (ReCam2Base, savename)</l>
 <c>    </c>
-<c>    </c>
+<c>       </c>
 <c>    </c>
 <c>    *icp pose to base</c>
 <c>    *change format to m</c>
