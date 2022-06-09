@@ -117,11 +117,11 @@
 <c>        </c>
 <c>        </c>
 <c>        ******************************************calibrate*****************************************</c>
-<l>        read_pose ('pose/robot_pose_' + I$'02d' + '.dat', Base_H_Tool)//读入的机器人ToolInBasePose为abg类型</l>
+<l>        read_pose ('pose/robot_pose_' + I$'02d' + '.dat', Base_H_Tool)</l>
 <c>       </c>
 <c>        *Transform from [mm] to [m]</c>
 <l>        Base_H_Tool_m := Base_H_Tool</l>
-<l>        Base_H_Tool_m[0:2] := Base_H_Tool_m[0:2] * 0.001//将单位改为m </l>
+<l>        Base_H_Tool_m[0:2] := Base_H_Tool_m[0:2] * 0.001</l>
 <l>        if (|SphereScore|=1 and |BoardScore|=1)</l>
 <l>            set_calib_data (HECCalibDataID, 'tool', RealNumCalibrationScenes, 'tool_in_base_pose', Base_H_Tool_m)    //将ToolInBasePose(机器人工具的位姿)输入标定数据模型</l>
 <l>            set_calib_data_observ_pose (HECCalibDataID, 0, 0, RealNumCalibrationScenes, Cam_H_Obj_m)                 //将ObjInCamPose(校准对象的位姿)输入标定数据模型      </l>
@@ -131,7 +131,7 @@
 <c>    </c>
 <l>    stop ()</l>
 <c>        </c>
-<l>    check_hand_eye_calibration_input_poses (HECCalibDataID, 0.05, 0.005, Warnings)//5单位为mm,默认值0.005是以m为单位</l>
+<l>    check_hand_eye_calibration_input_poses (HECCalibDataID, 0.05, 0.005, Warnings)</l>
 <l>    if (|Warnings| != 0)</l>
 <c>        * There were problem detected in the input poses. Inspect Warnings and</c>
 <c>        * remove erroneous poses with remove_calib_data and remove_calib_data_observ.</c>
@@ -148,7 +148,7 @@
 <c>    * Obtain the results of the hand-eye calibration and save them to file.</c>
 <l>    get_calib_data (HECCalibDataID, 'camera', 0, 'base_in_cam_pose', Cam_H_Base)</l>
 <l>    get_calib_data (HECCalibDataID, 'calib_obj', 0, 'obj_in_tool_pose', Tool_H_Obj)</l>
-<l>    pose_invert (Cam_H_Base, Base_H_Cam) //该pose为abg类型</l>
+<l>*     pose_invert (Cam_H_Base, Base_H_Cam) </l>
 <l>*     write_pose (Base_H_Cam, 'campose.dat')</l>
 <c>    *Transform from [mm] to [m]</c>
 <l>    Cam_H_Base_mm:=Cam_H_Base </l>
@@ -176,8 +176,8 @@
 <l>NumCalibrationScenes:=21</l>
 <l>for J := 1 to NumCalibrationScenes by 1</l>
 <c>    </c>
-<l>    filename := 'pointcloud/3d_CalBoarde_' + J$'02d'</l>
-<l>    read_object_model_3d (filename, 0.001, [], [], ObjectModel3D, Status1)</l>
+<l>    pointcloudname := 'pointcloud/3d_CalBoarde_' + J$'02d'</l>
+<l>    read_object_model_3d (pointcloudname, 0.001, [], [], ObjectModel3D, Status1)</l>
 <l>    read_pose ('pose/robot_pose_' + J$'02d' + '.dat', Base2Tool)</l>
 <l>    Base2Tool[0:2] := Base2Tool[0:2] * 0.001//将单位改为m </l>
 <c>    *CalObjInCamPose = BaseInCamPose*ToolInBasePose*CalObjInToolPose</c>
@@ -195,7 +195,8 @@
 <c>    *icp pose = real cam to calcam</c>
 <l>    convert_pose_type (icpPose, 'Rp+T', 'abg', 'point', IcpPose)</l>
 <l>    pose_compose (IcpPose, CalCam2ObjTemp, ReCam2Obj)</l>
-<c>    </c>
+<c>        </c>
+<c>   </c>
 <l>    posesavename := 'Repose/Re_Cam2Obj_' + J$'02d' + '.dat'</l>
 <l>    write_pose (ReCam2Obj, posesavename)</l>
 <c>        </c>
@@ -250,6 +251,9 @@
 <l>create_pose (0.17, -0.05, 1.71, 35, 13, 225, 'Rp+T', 'abg', 'point', Cam2Obj)</l>
 <l>* read_pose('campose.dat', Pose)</l>
 <c></c>
+<c>* read pose from validate program</c>
+<l>read_pose ('D:/Qu/GitHub/Calibration/ENAC_eyehand_calibration/circle.dat',cam2circle)</l>
+<c></c>
 <c>* init parameter</c>
 <l>X_Cam2Obj := []</l>
 <l>Y_Cam2Obj := []</l>
@@ -293,6 +297,33 @@
 <c></c>
 <l>pose_invert (CoCam2Base, CoBase2Cam)</l>
 <l>pose_compose (CoBase2Cam, Cam2Obj, CoBase2Obj)</l>
+<c></c>
+<c>**********************************test******************************************</c>
+<l>Cam2BaseTest := Cam2Base</l>
+<l>Cam2BaseTest[0:2] := Cam2BaseTest[0:2]*1000    </l>
+<l>pose_compose (Cam2Base,IcpPose, PoseCompose)</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c>**********************************CamParam******************************************</c>
+<c></c>
+<c>* creat a hom2d matrix for camparam</c>
+<l>hom_mat2d_identity (camera_matrix)</l>
+<c></c>
+<l>camera_matrix := [2347.78, 0.0, 999.652,\
+                  0.0, 2348.64, 713.183,\
+                  0.0, 0.0, 1.0]</l>
+<c></c>
+<l>cam_mat_to_cam_par (camera_matrix, 0, 2064, 1544, CameraParam)</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
 <c></c>
 <c></c>
 <c></c>

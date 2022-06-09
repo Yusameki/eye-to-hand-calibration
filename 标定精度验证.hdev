@@ -25,8 +25,8 @@
 <l>AcqName := 'PhoXi'</l>
 <l>info_framegrabber (AcqName, 'device', DeviceInfo, DeviceValues)</l>
 <c>** Connect to scanner via serial number or index in DeviceValues[idx]</c>
-<l>* open_framegrabber (AcqName, 1, 1, 0, 0, 0, 0, 'default', -1, 'default', -1, 'false', 'default', '123456', -1, -1, AcqHandle)</l>
-<l>open_framegrabber (AcqName, 1, 1, 0, 0, 0, 0, 'default', -1, 'default', -1, 'false', 'default', DeviceValues[0], -1, -1, AcqHandle)</l>
+<l>open_framegrabber (AcqName, 1, 1, 0, 0, 0, 0, 'default', -1, 'default', -1, 'false', 'default', 'test', -1, -1, AcqHandle)</l>
+<l>* open_framegrabber (AcqName, 1, 1, 0, 0, 0, 0, 'default', -1, 'default', -1, 'false', 'default', DeviceValues[0], -1, -1, AcqHandle)</l>
 <c>** Check which output data are supported (in PhoXiControl &gt; OutputStructure &gt; Mark desired data &gt; press Set)</c>
 <l>get_framegrabber_param (AcqHandle, 'grab_data_items', AvailableDataToReturn)</l>
 <c>** Default is 'enabled' for both params</c>
