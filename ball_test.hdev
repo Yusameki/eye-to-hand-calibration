@@ -47,7 +47,7 @@
 <c></c>
 <l>stop ()</l>
 <c></c>
-<l>calibration := 1</l>
+<l>calibration := 0</l>
 <c></c>
 <l>if(calibration=1)</l>
 <l>    RemoveNumber:=[]    //remove unused point</l>
@@ -195,7 +195,10 @@
 <c>    *icp pose = real cam to calcam</c>
 <l>    convert_pose_type (icpPose, 'Rp+T', 'abg', 'point', IcpPose)</l>
 <l>    pose_compose (IcpPose, CalCam2ObjTemp, ReCam2Obj)</l>
-<c>        </c>
+<c>    </c>
+<c>    * test</c>
+<l>    diffpose := ReCam2Obj - CalCam2Obj </l>
+<l>    diffpose[0:2] := diffpose[0:2]*1000</l>
 <c>   </c>
 <l>    posesavename := 'Repose/Re_Cam2Obj_' + J$'02d' + '.dat'</l>
 <l>    write_pose (ReCam2Obj, posesavename)</l>
@@ -217,8 +220,7 @@
 <l>    savename := 'Repose/Re_Cam2Base_' + J$'02d' + '.dat'</l>
 <l>    write_pose (ReCam2Base, savename)</l>
 <c>    </c>
-<c>       </c>
-<c>    </c>
+<c>         </c>
 <c>    *icp pose to base</c>
 <c>    *change format to m</c>
 <l>*     RelCam2CalCam := IcpPose</l>
@@ -302,9 +304,6 @@
 <l>Cam2BaseTest := Cam2Base</l>
 <l>Cam2BaseTest[0:2] := Cam2BaseTest[0:2]*1000    </l>
 <l>pose_compose (Cam2Base,IcpPose, PoseCompose)</l>
-<c></c>
-<c></c>
-<c></c>
 <c></c>
 <c></c>
 <c>**********************************CamParam******************************************</c>
