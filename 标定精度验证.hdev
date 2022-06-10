@@ -11,8 +11,8 @@
 <l>gen_cam_par_area_scan_division (0.0078066255, -0.121916, 0.00000345,0.00000345,1071.03,793.9,2064,1544, CamParam)</l>
 <l>get_cam_par_data (CamParam, 'image_width', ImageWidth)</l>
 <l>get_cam_par_data (CamParam, 'image_height', ImageHeight)</l>
-<l>WindowWidth := ImageWidth*7/20   //窗口大小要和图像大小成比例</l>
-<l>WindowHeight := ImageHeight*7/20</l>
+<l>WindowWidth := ImageWidth*8/20   //窗口大小要和图像大小成比例</l>
+<l>WindowHeight := ImageHeight*8/20</l>
 <l>dev_open_window (0, 0, WindowWidth, WindowHeight, '#0A6697', WindowHandle)</l>
 <l>set_display_font (WindowHandle, 16, 'mono', 'true', 'false')</l>
 <l>dev_set_line_width (3)</l>
@@ -68,7 +68,7 @@
 <l>scale_image (Texture, ImageScaled, 0.06, 0)</l>
 <l>convert_image_type (ImageScaled, Image8Bit, 'byte')</l>
 <c>*/调整图像对比度</c>
-<l>scale_image (Image8Bit, Image, 7, 0)</l>
+<l>scale_image (Image8Bit, Image, 5, 0)</l>
 <l>get_grayval (Image, Rows, Columns, Intensity)</l>
 <l>set_object_model_3d_attrib_mod (ObjectModel3D, '&amp;intensity', 'points', Intensity)</l>
 <l>visualize_object_model_3d (WindowHandle, ObjectModel3D, CamParam, [], GenParamName, GenParamValue, [], [], [], Pose)  </l>
@@ -92,7 +92,8 @@
 <l>gen_circle (CircleROI, Row3, Column3, Radius3)</l>
 <l>reduce_domain (Image, CircleROI, ImageReduced)</l>
 <l>edges_sub_pix (ImageReduced, Circle0_Edges, 'canny', 2, 20, 60)</l>
-<l>select_shape_xld (Circle0_Edges, Circle0_Edges_select, ['contlength','circularity'], 'and', [100,0.6],[300,1])     </l>
+<l>select_shape_xld (Circle0_Edges, Circle0_Edges_select, ['contlength','circularity'], 'and', [50,0.4],[300,1])     </l>
+<l>* count_obj (Circle0_Edges_select, Circle0_Number)</l>
 <l>count_obj (Circle0_Edges_select, Circle0_Number)</l>
 <l>CircleOrEllipse:=1   //正圆椭圆标志:1正圆 0椭圆</l>
 <l>if (Circle0_Number==2)</l>
