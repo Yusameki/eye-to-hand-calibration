@@ -198,7 +198,9 @@
 <c>    </c>
 <c>    * test</c>
 <l>    diffpose := ReCam2Obj - CalCam2Obj </l>
-<l>    diffpose[0:2] := diffpose[0:2]*1000</l>
+<l>*     diffpose[0:2] := diffpose[0:2]*1000</l>
+<c>    </c>
+<c>    </c>
 <c>   </c>
 <l>    posesavename := 'Repose/Re_Cam2Obj_' + J$'02d' + '.dat'</l>
 <l>    write_pose (ReCam2Obj, posesavename)</l>
@@ -212,7 +214,7 @@
 <c>    </c>
 <c>    *change format to m</c>
 <l>    ReCam2Obj[0:2] := ReCam2Obj[0:2]*0.001</l>
-<c>        </c>
+<c>    </c>
 <c>    *cam2obj*obj2tool*tool2base = cam2base</c>
 <l>    pose_compose (ReCam2Obj, Obj2Tool, ReCam2Tool)</l>
 <l>    pose_compose (ReCam2Tool, Tool2Base, ReCam2Base)</l>
