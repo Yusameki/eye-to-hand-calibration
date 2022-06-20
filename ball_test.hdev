@@ -197,7 +197,7 @@
 <l>    pose_compose (IcpPose, CalCam2ObjTemp, ReCam2Obj)</l>
 <c>    </c>
 <c>    * test</c>
-<l>    diffpose := ReCam2Obj - CalCam2Obj </l>
+<l>    diffpose := ReCam2Obj - CalCam2ObjTemp </l>
 <l>*     diffpose[0:2] := diffpose[0:2]*1000</l>
 <c>    </c>
 <c>    </c>
