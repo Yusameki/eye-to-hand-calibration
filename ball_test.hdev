@@ -210,8 +210,7 @@
 <l>    Base2Cam[0:2] := Base2Cam[0:2]*1000</l>
 <l>    pose_compose (Base2Cam, Cam2Circle, Base2Circle)</l>
 <l>    pose_compose (Base2Cam, Cam2CircleTemp, Base2CircleTemp)</l>
-<c>    </c>
-<c>    </c>
+<c>     </c>
 <c>    </c>
 <c>    </c>
 <l>    posesavename := 'Repose/Re_Cam2Obj_' + J$'02d' + '.dat'</l>
