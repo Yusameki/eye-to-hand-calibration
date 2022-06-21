@@ -201,6 +201,7 @@
 <l>*     diffpose[0:2] := diffpose[0:2]*1000</l>
 <c>    </c>
 <c>    </c>
+<c>    </c>
 <c>   </c>
 <l>    posesavename := 'Repose/Re_Cam2Obj_' + J$'02d' + '.dat'</l>
 <l>    write_pose (ReCam2Obj, posesavename)</l>
