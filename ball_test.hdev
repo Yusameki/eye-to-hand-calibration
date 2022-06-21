@@ -199,10 +199,21 @@
 <c>    * test</c>
 <l>    diffpose := ReCam2Obj - CalCam2ObjTemp </l>
 <l>*     diffpose[0:2] := diffpose[0:2]*1000</l>
+<l>    read_pose ('D:/Qu/GitHub/Calibration/ENAC_eyehand_calibration/circle.dat',Cam2Circle)</l>
+<l>    pose_invert (Cam2Base, Base2Cam)</l>
+<l>    Cam2CircleTemp := Cam2Circle</l>
+<c>       </c>
+<l>    Cam2CircleTemp[0] := Cam2Circle[0] + diffpose[0]</l>
+<l>    Cam2CircleTemp[1] := Cam2Circle[1] + diffpose[1]</l>
+<l>    Cam2CircleTemp[2] := Cam2Circle[2] + diffpose[2]</l>
+<c>    </c>
+<l>    Base2Cam[0:2] := Base2Cam[0:2]*1000</l>
+<l>    pose_compose (Base2Cam, Cam2Circle, Base2Circle)</l>
+<l>    pose_compose (Base2Cam, Cam2CircleTemp, Base2CircleTemp)</l>
 <c>    </c>
 <c>    </c>
 <c>    </c>
-<c>   </c>
+<c>    </c>
 <l>    posesavename := 'Repose/Re_Cam2Obj_' + J$'02d' + '.dat'</l>
 <l>    write_pose (ReCam2Obj, posesavename)</l>
 <c>        </c>
