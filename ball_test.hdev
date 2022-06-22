@@ -198,7 +198,7 @@
 <c>    </c>
 <c>    * test</c>
 <l>    diffposetemp := ReCam2Obj - CalCam2ObjTemp</l>
-<l>    diffposesavename := 'Repose/DiffPose' + J$'02d' + '.dat'</l>
+<l>    diffposesavename := 'Repose/Diff_Pose_' + J$'02d' + '.dat'</l>
 <l>    write_pose (diffposetemp, diffposesavename)</l>
 <c>    </c>
 <c>        </c>
@@ -242,11 +242,16 @@
 <c></c>
 <c>**********************************calc distance******************************************</c>
 <c></c>
-<l>create_pose (0.17, -0.05, 1.71, 35, 13, 225, 'Rp+T', 'abg', 'point', Cam2Obj)</l>
+<l>* create_pose (0.17, -0.05, 1.71, 35, 13, 225, 'Rp+T', 'abg', 'point', Cam2Obj)</l>
 <l>* read_pose('campose.dat', Pose)</l>
 <c></c>
 <c>* read pose from validate program</c>
-<l>read_pose ('D:/Qu/GitHub/Calibration/ENAC_eyehand_calibration/circle.dat',cam2circle)</l>
+<l>* read_pose ('D:/Qu/GitHub/Calibration/ENAC_eyehand_calibration/circle.dat',cam2circle)</l>
+<c></c>
+<l>read_pose ('D:/Qu/GitHub/Calibration/ENAC_eyehand_calibration/circle.dat',Cam2Circle)</l>
+<l>Cam2Obj := Cam2Circle</l>
+<l>pose_invert (Cam2Base, Base2Cam)</l>
+<l>Cam2CircleTemp := Cam2Circle</l>
 <c></c>
 <c>* init parameter</c>
 <l>X_Cam2Obj := []</l>
@@ -301,7 +306,8 @@
 <l>pose_invert (Cam2Base, Base2Cam)</l>
 <l>Cam2CircleTemp := Cam2Circle</l>
 <c></c>
-<l>read_pose ('campose.dat', Pose)</l>
+<l>diffposereadname := 'Repose/Diff_Pose_' + MinDistance$'02d' + '.dat'</l>
+<l>read_pose (diffposereadname, diffpose)</l>
 <c></c>
 <l>Cam2CircleTemp[0] := Cam2Circle[0] + diffpose[0]</l>
 <l>Cam2CircleTemp[1] := Cam2Circle[1] + diffpose[1]</l>
