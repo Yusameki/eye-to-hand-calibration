@@ -197,22 +197,11 @@
 <l>    pose_compose (IcpPose, CalCam2ObjTemp, ReCam2Obj)</l>
 <c>    </c>
 <c>    * test</c>
-<l>    diffpose := ReCam2Obj - CalCam2ObjTemp </l>
-<l>*     diffpose[0:2] := diffpose[0:2]*1000</l>
-<l>    read_pose ('D:/Qu/GitHub/Calibration/ENAC_eyehand_calibration/circle.dat',Cam2Circle)</l>
-<l>    pose_invert (Cam2Base, Base2Cam)</l>
-<l>    Cam2CircleTemp := Cam2Circle</l>
-<c>       </c>
-<l>    Cam2CircleTemp[0] := Cam2Circle[0] + diffpose[0]</l>
-<l>    Cam2CircleTemp[1] := Cam2Circle[1] + diffpose[1]</l>
-<l>    Cam2CircleTemp[2] := Cam2Circle[2] + diffpose[2]</l>
+<l>    diffposetemp := ReCam2Obj - CalCam2ObjTemp</l>
+<l>    diffposesavename := 'Repose/DiffPose' + J$'02d' + '.dat'</l>
+<l>    write_pose (diffposetemp, diffposesavename)</l>
 <c>    </c>
-<l>    Base2Cam[0:2] := Base2Cam[0:2]*1000</l>
-<l>    pose_compose (Base2Cam, Cam2Circle, Base2Circle)</l>
-<l>    pose_compose (Base2Cam, Cam2CircleTemp, Base2CircleTemp)</l>
-<c>     </c>
-<c>    </c>
-<c>    </c>
+<c>        </c>
 <l>    posesavename := 'Repose/Re_Cam2Obj_' + J$'02d' + '.dat'</l>
 <l>    write_pose (ReCam2Obj, posesavename)</l>
 <c>        </c>
@@ -220,29 +209,19 @@
 <l>    rigid_trans_object_model_3d (SphereOM3D, ReCam2Obj, SphereOM3DRigidTrans_Test2)</l>
 <c>    </c>
 <c>    *pose invert </c>
-<l>    pose_invert (Base2Tool, Tool2Base)</l>
-<l>    pose_invert (Tool2Obj, Obj2Tool)</l>
+<l>*     pose_invert (Base2Tool, Tool2Base)</l>
+<l>*     pose_invert (Tool2Obj, Obj2Tool)</l>
 <c>    </c>
 <c>    *change format to m</c>
-<l>    ReCam2Obj[0:2] := ReCam2Obj[0:2]*0.001</l>
+<l>*     ReCam2Obj[0:2] := ReCam2Obj[0:2]*0.001</l>
 <c>    </c>
 <c>    *cam2obj*obj2tool*tool2base = cam2base</c>
-<l>    pose_compose (ReCam2Obj, Obj2Tool, ReCam2Tool)</l>
-<l>    pose_compose (ReCam2Tool, Tool2Base, ReCam2Base)</l>
+<l>*     pose_compose (ReCam2Obj, Obj2Tool, ReCam2Tool)</l>
+<l>*     pose_compose (ReCam2Tool, Tool2Base, ReCam2Base)</l>
 <c>    </c>
-<l>    savename := 'Repose/Re_Cam2Base_' + J$'02d' + '.dat'</l>
-<l>    write_pose (ReCam2Base, savename)</l>
+<l>*     savename := 'Repose/Re_Cam2Base_' + J$'02d' + '.dat'</l>
+<l>*     write_pose (ReCam2Base, savename)</l>
 <c>    </c>
-<c>         </c>
-<c>    *icp pose to base</c>
-<c>    *change format to m</c>
-<l>*     RelCam2CalCam := IcpPose</l>
-<l>*     RelCam2CalCam[0:2] := RelCam2CalCam[0:2]/1000</l>
-<c>    </c>
-<c>    *pose compose</c>
-<l>*     pose_compose (RelCam2CalCam, Obj2Tool, ReIcpTool)</l>
-<l>*     pose_compose (ReIcpTool, Tool2Base, ReIcp2Base)</l>
-<l>*     pose_compose (ReIcp2Base, Cam2Base, testpose1)</l>
 <c>    </c>
 <c>    </c>
 <c>    *visualization</c>
@@ -314,9 +293,23 @@
 <l>pose_compose (CoBase2Cam, Cam2Obj, CoBase2Obj)</l>
 <c></c>
 <c>**********************************test******************************************</c>
-<l>Cam2BaseTest := Cam2Base</l>
-<l>Cam2BaseTest[0:2] := Cam2BaseTest[0:2]*1000    </l>
-<l>pose_compose (Cam2Base,IcpPose, PoseCompose)</l>
+<l>* Cam2BaseTest := Cam2Base</l>
+<l>* Cam2BaseTest[0:2] := Cam2BaseTest[0:2]*1000    </l>
+<l>* pose_compose (Cam2Base,IcpPose, PoseCompose)</l>
+<c></c>
+<l>read_pose ('D:/Qu/GitHub/Calibration/ENAC_eyehand_calibration/circle.dat',Cam2Circle)</l>
+<l>pose_invert (Cam2Base, Base2Cam)</l>
+<l>Cam2CircleTemp := Cam2Circle</l>
+<c></c>
+<l>read_pose ('campose.dat', Pose)</l>
+<c></c>
+<l>Cam2CircleTemp[0] := Cam2Circle[0] + diffpose[0]</l>
+<l>Cam2CircleTemp[1] := Cam2Circle[1] + diffpose[1]</l>
+<l>Cam2CircleTemp[2] := Cam2Circle[2] + diffpose[2]</l>
+<c></c>
+<l>Base2Cam[0:2] := Base2Cam[0:2]*1000 </l>
+<l>pose_compose (Base2Cam, Cam2Circle, Base2Circle)</l>
+<l>pose_compose (Base2Cam, Cam2CircleTemp, Base2CircleTemp)</l>
 <c></c>
 <c></c>
 <c>**********************************CamParam******************************************</c>
