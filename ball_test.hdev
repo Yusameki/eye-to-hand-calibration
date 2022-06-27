@@ -204,7 +204,7 @@
 <c>        </c>
 <l>    posesavename := 'Repose/Re_Cam2Obj_' + J$'02d' + '.dat'</l>
 <l>    write_pose (ReCam2Obj, posesavename)</l>
-<c>        </c>
+<c>     </c>
 <c>    *set pose to 3d ball model</c>
 <l>    rigid_trans_object_model_3d (SphereOM3D, ReCam2Obj, SphereOM3DRigidTrans_Test2)</l>
 <c>    </c>
@@ -280,14 +280,12 @@
 <c></c>
 <c>* Calculate obj distance</c>
 <l>X_diff := X_Cam2Obj - X_ReCam2Obj</l>
-<l>Y_diff := Y_Cam2Obj - Y_ReCam2Obj</l>
+<l>Y_diff := Y_Cam2Obj - Y_ReCam2Obj </l>
 <l>Z_diff := Z_Cam2Obj - Z_ReCam2Obj</l>
 <l>PoseDistance := sqrt(X_diff * X_diff + Y_diff * Y_diff + Z_diff * Z_diff)</l>
-<c></c>
+<c>  </c>
 <c>* select min distance point</c>
 <l>tuple_sort_index (PoseDistance, PoseDistanceIndices)</l>
-<l>* tuple_sort (PoseErr, Sorted)</l>
-<l>* tuple_sort_index (Sorted, Indices1)</l>
 <l>MinDistance := PoseDistanceIndices[0] + 1</l>
 <c></c>
 <c>* calc ReBase2Obj</c>
@@ -326,14 +324,6 @@
                   0.0, 0.0, 1.0]</l>
 <c></c>
 <l>cam_mat_to_cam_par (camera_matrix, 0, 2064, 1544, CameraParam)</l>
-<c></c>
-<c></c>
-<c></c>
-<c></c>
-<c></c>
-<c></c>
-<c></c>
-<c></c>
 <c></c>
 <c></c>
 <c></c>
