@@ -171,6 +171,8 @@
 <l>stop ()</l>
 <c></c>
 <c>**************************使用标定数据*************************</c>
+<c></c>
+<c></c>
 <l>convert_pose_type (Cam_H_Circle_gba, 'Rp+T', 'abg', 'point', Cam_H_Circle)</l>
 <l>* create_pose (142.207 , -547.068, 1877.13,  175.096, 6.766, 314.07, 'Rp+T', 'abg', 'point', Cam_H_Base)</l>
 <l>read_pose ('D:/Qu/GitHub/Calibration/ENAC_eyehand_calibration/results/Cam_H_Base.dat', Cam_H_Base)</l>
@@ -193,7 +195,14 @@
 <c>**********************************calc distance******************************************</c>
 <c></c>
 <l>* create_pose (0.17, -0.05, 1.71, 35, 13, 225, 'Rp+T', 'abg', 'point', Cam2Obj)</l>
-<l>Cam2Obj := Cam_H_Circle</l>
+<c></c>
+<c></c>
+<c>* get cam2obj pose</c>
+<c></c>
+<l>read_pose ('D:/Qu/GitHub/Calibration/ENAC_eyehand_calibration/circle.dat',Cam2Circle)</l>
+<l>Cam2Obj := Cam2Circle</l>
+<l>* Cam2Obj := Cam_H_Circle</l>
+<c></c>
 <c></c>
 <c>* init parameter</c>
 <l>X_Cam2Obj := []</l>
@@ -228,42 +237,9 @@
 <c></c>
 <c>* select min distance point</c>
 <l>tuple_sort_index (PoseDistance, PoseDistanceIndices)</l>
-<l>* tuple_sort (PoseErr, Sorted)</l>
-<l>* tuple_sort_index (Sorted, Indices1)</l>
 <l>MinDistance := PoseDistanceIndices[0] + 1</l>
 <c></c>
-<c>* calc ReBase2Obj</c>
-<l>correctionname := 'Repose/Re_Cam2Base_' + MinDistance$'02d' + '.dat'</l>
-<l>read_pose (correctionname, CoCam2Base)</l>
-<c></c>
-<l>CoCam2Base[0:2] := CoCam2Base[0:2]*1000</l>
-<c></c>
-<l>pose_invert (CoCam2Base, CoBase2Cam)</l>
-<l>pose_compose (CoBase2Cam, Cam2Obj, CoBase2Obj)</l>
-<c></c>
-<l>x1:=CoBase2Obj[0]</l>
-<l>y1:=CoBase2Obj[1]</l>
-<l>z1:=CoBase2Obj[2]</l>
-<c>*度转弧度</c>
-<l>rx1:=CoBase2Obj[3]*PI/180</l>
-<l>ry1:=CoBase2Obj[4]*PI/180</l>
-<l>rz1:=CoBase2Obj[5]*PI/180</l>
-<c></c>
 <c>**********************************test******************************************</c>
-<c>* prepare for calc distance</c>
-<l>for H := 1 to NumCalibrationScenes by 1</l>
-<c>    *read Real Cam2Obj pose from files</c>
-<l>    resultname := 'Repose/Re_Cam2Obj_' + H$'02d' + '.dat'</l>
-<l>    read_pose (resultname,Re_Cam2Obj)</l>
-<l>    X_Cam2Obj := [X_Cam2Obj, Cam2Obj[0] * 1000]</l>
-<l>    Y_Cam2Obj := [Y_Cam2Obj, Cam2Obj[1] * 1000]</l>
-<l>    Z_Cam2Obj := [Z_Cam2Obj, Cam2Obj[2] * 1000]</l>
-<c></c>
-<l>    X_ReCam2Obj := [X_ReCam2Obj, Re_Cam2Obj[0]]</l>
-<l>    Y_ReCam2Obj := [Y_ReCam2Obj, Re_Cam2Obj[1]]</l>
-<l>    Z_ReCam2Obj := [Z_ReCam2Obj, Re_Cam2Obj[2]]</l>
-<c>      </c>
-<l>endfor </l>
 <c></c>
 <l>read_pose ('results/Cam_H_Base.dat', Cam2Base)</l>
 <l>read_pose ('D:/Qu/GitHub/Calibration/ENAC_eyehand_calibration/circle.dat',Cam2Circle)</l>
@@ -280,6 +256,27 @@
 <l>Base2Cam[0:2] := Base2Cam[0:2]*1000  </l>
 <l>pose_compose (Base2Cam, Cam2Circle, Base2Circle)</l>
 <l>pose_compose (Base2Cam, Cam2CircleTemp, Base2CircleTemp)</l>
+<c></c>
+<c>**********************************test end******************************************</c>
+<c></c>
+<c>* calc ReBase2Obj</c>
+<l>* correctionname := 'Repose/Re_Cam2Base_' + MinDistance$'02d' + '.dat'</l>
+<l>* read_pose (correctionname, CoCam2Base)</l>
+<c></c>
+<l>* CoCam2Base[0:2] := CoCam2Base[0:2]*1000</l>
+<c></c>
+<l>* pose_invert (CoCam2Base, CoBase2Cam)</l>
+<l>* pose_compose (CoBase2Cam, Cam2Obj, CoBase2Obj)</l>
+<c></c>
+<l>x1:=CoBase2Obj[0]</l>
+<l>y1:=CoBase2Obj[1]</l>
+<l>z1:=CoBase2Obj[2]</l>
+<c>*度转弧度</c>
+<l>rx1:=CoBase2Obj[3]*PI/180</l>
+<l>ry1:=CoBase2Obj[4]*PI/180</l>
+<l>rz1:=CoBase2Obj[5]*PI/180</l>
+<c></c>
+<c></c>
 <c></c>
 <c></c>
 </body>
