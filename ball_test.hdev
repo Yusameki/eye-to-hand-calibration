@@ -316,7 +316,7 @@
 <l>pose_compose (Base2Cam, Cam2CircleTemp, Base2CircleTemp)</l>
 <c></c>
 <c></c>
-<c></c>
+<l>stop()</l>
 <c>**********************************CamParam******************************************</c>
 <c></c>
 <c>* creat a hom2d matrix for camparam</c>
