@@ -47,7 +47,7 @@
 <c></c>
 <l>stop ()</l>
 <c></c>
-<l>calibration := 0</l>
+<l>calibration := 1</l>
 <c></c>
 <l>if(calibration=1)</l>
 <l>    RemoveNumber:=[]    //remove unused point</l>
@@ -121,7 +121,7 @@
 <c>       </c>
 <c>        *Transform from [mm] to [m]</c>
 <l>        Base_H_Tool_m := Base_H_Tool</l>
-<l>        Base_H_Tool_m[0:2] := Base_H_Tool_m[0:2] * 0.001</l>
+<l>*         Base_H_Tool_m[0:2] := Base_H_Tool_m[0:2] * 0.001</l>
 <l>        if (|SphereScore|=1 and |BoardScore|=1)</l>
 <l>            set_calib_data (HECCalibDataID, 'tool', RealNumCalibrationScenes, 'tool_in_base_pose', Base_H_Tool_m)    //将ToolInBasePose(机器人工具的位姿)输入标定数据模型</l>
 <l>            set_calib_data_observ_pose (HECCalibDataID, 0, 0, RealNumCalibrationScenes, Cam_H_Obj_m)                 //将ObjInCamPose(校准对象的位姿)输入标定数据模型      </l>

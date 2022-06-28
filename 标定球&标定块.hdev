@@ -76,7 +76,7 @@
 <c></c>
 <l>* RemoveNumber:=[]    //移除标定样本序号 XL相机 4和14为同一点,24和2728为同一点  </l>
 <l>RemoveNumber:=[]    //remove unused point</l>
-<l>NumCalibrationScenes := 21          //最大标定样本数量</l>
+<l>NumCalibrationScenes := 27        //最大标定样本数量</l>
 <l>RealNumCalibrationScenes:=0         //真实标定样本数量</l>
 <l>Num:=[]   //每个样本对应序号---用于后面验证标定结果时,根据序号读取对应样本点云</l>
 <l>for I := 1 to NumCalibrationScenes by 1</l>
@@ -127,7 +127,7 @@
 <c>        */因此在用该算子前，先调用scale_image调整灰度范围。</c>
 <l>        convert_image_type (ImageScaled, Image8Bit, 'byte')</l>
 <c>        */调整图像对比度</c>
-<l>        scale_image (Image8Bit, Image, 6, 0)</l>
+<l>        scale_image (Image8Bit, Image, 3, 0)</l>
 <l>*         write_image (Image, 'png', 0, 'F:/test/calibrate_3D/自制标定板/ImageModel_diameter8.png')</l>
 <l>        get_grayval (Image, Rows, Columns, Intensity)</l>
 <l>        set_object_model_3d_attrib_mod (ObjectModel3D, '&amp;intensity', 'points', Intensity)</l>
@@ -141,7 +141,7 @@
 <l>            visualize_object_model_3d (WindowHandle, ObjectModel3D, CamParam, [], GenParamName, GenParamValue, [], [], [], Pose)</l>
 <c>            *只有保存为om3格式才能用'from_xyz_map'重投影生成X\Y\Z图像</c>
 <l>*             stop()</l>
-<l>            write_object_model_3d (    ObjectModel3D,'om3','pointcloud/3d_CalBoarde_01.om3', [], [])</l>
+<l>            write_object_model_3d (    ObjectModel3D,'om3','pointcloud/3d_CalBoarde_27.om3', [], [])</l>
 <l>*             write_object_model_3d (ObjectModel3D,'ply','pointcloud_XL0120/ply/3d_CalBoarde_28.ply', [], [])</l>
 <l>        endif</l>
 <l>    else   </l>
@@ -218,7 +218,7 @@
 <c>    *对于每个校准对象的位姿必须指定机器人工具的相应位姿-&gt;当前机械手法兰盘坐标系在基坐标系的位姿</c>
 <c>    *Transform from [mm] to [m]</c>
 <l>    Base_H_Tool_m := Base_H_Tool</l>
-<l>    Base_H_Tool_m[0:2] := Base_H_Tool_m[0:2] * 0.001//将单位改为m </l>
+<l>*     Base_H_Tool_m[0:2] := Base_H_Tool_m[0:2] * 0.001//将单位改为m </l>
 <l>    if (|SphereScore|=1 and |BoardScore|=1)</l>
 <l>        set_calib_data (HECCalibDataID, 'tool', RealNumCalibrationScenes, 'tool_in_base_pose', Base_H_Tool_m)    //将ToolInBasePose(机器人工具的位姿)输入标定数据模型</l>
 <l>        set_calib_data_observ_pose (HECCalibDataID, 0, 0, RealNumCalibrationScenes, Cam_H_Obj_m)                 //将ObjInCamPose(校准对象的位姿)输入标定数据模型      </l>

@@ -6,12 +6,12 @@
 f 2
 
 # Rotation angles [deg] or Rodriguez vector:
-r -12.32 -28.27 80.32
+r 47.7371564880428 34.5331867896178 -134.475481790161
 
 # Translation vector (x y z [m]):
-t -865.67 -299.72 86.76
+t -0.457153863639156 0.0621875203185345 0.200395699530042
 
 # 
-# HALCON Version 21.05 --  Tue Jun  7 15:18:58 2022
+# HALCON Version 21.05 --  Tue Jun 28 10:51:33 2022
 
 # 

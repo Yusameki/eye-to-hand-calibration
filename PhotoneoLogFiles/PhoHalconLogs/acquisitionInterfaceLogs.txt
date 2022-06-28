@@ -18,3 +18,5 @@
 [2022-06-09 14:49:34.640] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage test: PFrame object is nullptr
 [2022-06-10 09:34:58.419] [HALCON-spdlogger] [error] !!!  FGOpen: Requested device [test] is not available
 [2022-06-20 09:27:54.322] [HALCON-spdlogger] [error] !!!  FGOpen: Requested device [test] is not available
+[2022-06-28 13:08:47.008] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage DVA-135: FrameID is a negativ number: -1
+[2022-06-28 13:09:33.186] [HALCON-spdlogger] [error] !!! FGOpen DVA-135: Scanner DVA-135 is not connected
