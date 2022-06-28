@@ -51,7 +51,7 @@
 <c></c>
 <l>if(calibration=1)</l>
 <l>    RemoveNumber:=[]    //remove unused point</l>
-<l>    NumCalibrationScenes := 21          //max point num</l>
+<l>    NumCalibrationScenes := 27          //max point num</l>
 <l>    RealNumCalibrationScenes:=0         //real calibration point number</l>
 <l>    Num:=[]   //每个样本对应序号---用于后面验证标定结果时,根据序号读取对应样本点云</l>
 <l>    for I := 1 to NumCalibrationScenes by 1</l>
@@ -173,13 +173,13 @@
 <c></c>
 <l>Cam2BaseTemp := Cam2Base</l>
 <c></c>
-<l>NumCalibrationScenes:=21</l>
+<l>NumCalibrationScenes:=27</l>
 <l>for J := 1 to NumCalibrationScenes by 1</l>
 <c>    </c>
 <l>    pointcloudname := 'pointcloud/3d_CalBoarde_' + J$'02d'</l>
 <l>    read_object_model_3d (pointcloudname, 0.001, [], [], ObjectModel3D, Status1)</l>
 <l>    read_pose ('pose/robot_pose_' + J$'02d' + '.dat', Base2Tool)</l>
-<l>    Base2Tool[0:2] := Base2Tool[0:2] * 0.001//将单位改为m </l>
+<l>*     Base2Tool[0:2] := Base2Tool[0:2] * 0.001//将单位改为m </l>
 <c>    *CalObjInCamPose = BaseInCamPose*ToolInBasePose*CalObjInToolPose</c>
 <c>    *base in cam - tool in base = tool in cam</c>
 <l>    pose_compose (Cam2Base, Base2Tool, Cam2Tool) </l>
@@ -248,7 +248,10 @@
 <c>* read pose from validate program</c>
 <l>* read_pose ('D:/Qu/GitHub/Calibration/ENAC_eyehand_calibration/circle.dat',cam2circle)</l>
 <c></c>
-<l>read_pose ('D:/Qu/GitHub/Calibration/ENAC_eyehand_calibration/circle.dat',Cam2Circle)</l>
+<c></c>
+<c>* test</c>
+<l>read_pose ('D:/Qu/GitHub/Calibration/ENAC_eyehand_calibration/Repose/Re_Cam2Obj_03.dat',Cam2Circle)</l>
+<c></c>
 <l>Cam2Circle[0:2] := Cam2Circle[0:2]*0.001</l>
 <l>Cam2Obj := Cam2Circle</l>
 <l>pose_invert (Cam2Base, Base2Cam)</l>
@@ -261,7 +264,7 @@
 <l>Y_ReCam2Obj := []</l>
 <l>Z_ReCam2Obj := []</l>
 <c></c>
-<l>NumCalibrationScenes := 21</l>
+<l>NumCalibrationScenes := 27</l>
 <c></c>
 <c>* prepare for calc distance</c>
 <l>for H := 1 to NumCalibrationScenes by 1</l>
@@ -297,16 +300,16 @@
 <c></c>
 <c>**********************************test******************************************</c>
 <c></c>
-<l>read_pose ('D:/Qu/GitHub/Calibration/ENAC_eyehand_calibration/circle.dat',Cam2Circle)</l>
+<l>read_pose ('D:/Qu/GitHub/Calibration/ENAC_eyehand_calibration/Repose/Re_Cam2Obj_03.dat',Cam2Circle)</l>
 <l>pose_invert (Cam2Base, Base2Cam)</l>
 <l>Cam2CircleTemp := Cam2Circle</l>
 <c></c>
 <l>diffposereadname := 'Repose/Diff_Pose_' + MinDistance$'02d' + '.dat'</l>
 <l>read_pose (diffposereadname, diffpose)</l>
 <c></c>
-<l>Cam2CircleTemp[0] := Cam2Circle[0] + diffpose[0]</l>
-<l>Cam2CircleTemp[1] := Cam2Circle[1] + diffpose[1]</l>
-<l>* Cam2CircleTemp[2] := Cam2Circle[2] + diffpose[2]</l>
+<l>Cam2CircleTemp[0] := Cam2Circle[0] - diffpose[0]</l>
+<l>Cam2CircleTemp[1] := Cam2Circle[1] - diffpose[1]</l>
+<l>Cam2CircleTemp[2] := Cam2Circle[2] - diffpose[2]</l>
 <c></c>
 <l>Base2Cam[0:2] := Base2Cam[0:2]*1000  </l>
 <l>pose_compose (Base2Cam, Cam2Circle, Base2Circle)</l>

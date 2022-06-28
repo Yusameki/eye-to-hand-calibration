@@ -3,15 +3,15 @@
 # 
 
 # Used representation type:
-f 2
+f 0
 
 # Rotation angles [deg] or Rodriguez vector:
-r 178.734979721093 9.3172343256544 313.708431836525
+r -1.59999974559554 4.29563474964161 -1.33766869118682
 
 # Translation vector (x y z [m]):
-t -0.261608611225405 -0.44961270568595 1.95198479316176
+t -1.34423873510173 -1.7290028624293 -0.13622943801488
 
 # 
-# HALCON Version 21.05 --  Tue Jun 28 15:04:03 2022
+# HALCON Version 21.05 --  Tue Jun 28 15:36:57 2022
 
 # 
