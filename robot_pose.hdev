@@ -11,7 +11,7 @@
 <c></c>
 <l>stop()</l>
 <c></c>
-<l>write_pose (Base2Tool, 'pose/robot_pose_27.dat')</l>
+<l>write_pose (Base2Tool, 'pose/robot_pose_10.dat')</l>
 <c></c>
 </body>
 <docu id="main">

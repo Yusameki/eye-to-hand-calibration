@@ -181,15 +181,7 @@
 <l>pose_invert (Cam_H_Base, Base_H_Cam)</l>
 <l>pose_compose (Base_H_Cam, Cam_H_Circle, ObjInBasePose)</l>
 <c></c>
-<l>PI:=3.1415926</l>
-<c>*m转mm</c>
-<l>x:=ObjInBasePose[0]</l>
-<l>y:=ObjInBasePose[1]</l>
-<l>z:=ObjInBasePose[2]</l>
-<c>*度转弧度</c>
-<l>rx:=ObjInBasePose[3]*PI/180</l>
-<l>ry:=ObjInBasePose[4]*PI/180</l>
-<l>rz:=ObjInBasePose[5]*PI/180</l>
+<c></c>
 <c></c>
 <c></c>
 <c>**********************************calc distance******************************************</c>
@@ -212,7 +204,7 @@
 <l>Y_ReCam2Obj := []</l>
 <l>Z_ReCam2Obj := []</l>
 <c></c>
-<l>NumCalibrationScenes := 21</l>
+<l>NumCalibrationScenes := 27</l>
 <c></c>
 <c>* prepare for calc distance</c>
 <l>for H := 1 to NumCalibrationScenes by 1</l>
@@ -249,9 +241,9 @@
 <l>diffposereadname := 'Repose/Diff_Pose_' + MinDistance$'02d' + '.dat'</l>
 <l>read_pose (diffposereadname, diffpose)</l>
 <c></c>
-<l>Cam2CircleTemp[0] := Cam2Circle[0] + diffpose[0]</l>
-<l>Cam2CircleTemp[1] := Cam2Circle[1] + diffpose[1]</l>
-<l>* Cam2CircleTemp[2] := Cam2Circle[2] + diffpose[2]</l>
+<l>Cam2CircleTemp[0] := Cam2Circle[0] - diffpose[0]</l>
+<l>Cam2CircleTemp[1] := Cam2Circle[1] - diffpose[1]</l>
+<l>Cam2CircleTemp[2] := Cam2Circle[2] - diffpose[2]</l>
 <c></c>
 <l>Base2Cam[0:2] := Base2Cam[0:2]*1000  </l>
 <l>pose_compose (Base2Cam, Cam2Circle, Base2Circle)</l>
@@ -267,6 +259,17 @@
 <c></c>
 <l>* pose_invert (CoCam2Base, CoBase2Cam)</l>
 <l>* pose_compose (CoBase2Cam, Cam2Obj, CoBase2Obj)</l>
+<l>CoBase2Obj :=Base2CircleTemp</l>
+<c></c>
+<l>PI:=3.1415926</l>
+<c>*m转mm</c>
+<l>x:=ObjInBasePose[0]</l>
+<l>y:=ObjInBasePose[1]</l>
+<l>z:=ObjInBasePose[2]</l>
+<c>*度转弧度</c>
+<l>rx:=ObjInBasePose[3]*PI/180</l>
+<l>ry:=ObjInBasePose[4]*PI/180</l>
+<l>rz:=ObjInBasePose[5]*PI/180</l>
 <c></c>
 <l>x1:=CoBase2Obj[0]</l>
 <l>y1:=CoBase2Obj[1]</l>
