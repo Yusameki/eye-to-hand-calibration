@@ -47,7 +47,7 @@
 <c></c>
 <l>stop ()</l>
 <c></c>
-<l>calibration := 1</l>
+<l>calibration := 0</l>
 <c></c>
 <l>if(calibration=1)</l>
 <l>    RemoveNumber:=[]    //remove unused point</l>
@@ -250,7 +250,9 @@
 <c></c>
 <c></c>
 <c>* test</c>
-<l>read_pose ('D:/Qu/GitHub/Calibration/ENAC_eyehand_calibration/Repose/Re_Cam2Obj_03.dat',Cam2Circle)</l>
+<l>F:= 2</l>
+<l>testname := 'Repose/Re_Cam2Obj_' + F$'02d' + '.dat'</l>
+<l>read_pose (testname,Cam2Circle)</l>
 <c></c>
 <l>Cam2Circle[0:2] := Cam2Circle[0:2]*0.001</l>
 <l>Cam2Obj := Cam2Circle</l>
@@ -300,7 +302,7 @@
 <c></c>
 <c>**********************************test******************************************</c>
 <c></c>
-<l>read_pose ('D:/Qu/GitHub/Calibration/ENAC_eyehand_calibration/Repose/Re_Cam2Obj_03.dat',Cam2Circle)</l>
+<l>read_pose (testname,Cam2Circle)</l>
 <l>pose_invert (Cam2Base, Base2Cam)</l>
 <l>Cam2CircleTemp := Cam2Circle</l>
 <c></c>

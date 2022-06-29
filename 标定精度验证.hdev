@@ -11,8 +11,8 @@
 <l>gen_cam_par_area_scan_division (0.0078066255, -0.121916, 0.00000345,0.00000345,1071.03,793.9,2064,1544, CamParam)</l>
 <l>get_cam_par_data (CamParam, 'image_width', ImageWidth)</l>
 <l>get_cam_par_data (CamParam, 'image_height', ImageHeight)</l>
-<l>WindowWidth := ImageWidth*8/20   //窗口大小要和图像大小成比例</l>
-<l>WindowHeight := ImageHeight*8/20</l>
+<l>WindowWidth := ImageWidth*7/20   //窗口大小要和图像大小成比例</l>
+<l>WindowHeight := ImageHeight*7/20</l>
 <l>dev_open_window (0, 0, WindowWidth, WindowHeight, '#0A6697', WindowHandle)</l>
 <l>set_display_font (WindowHandle, 16, 'mono', 'true', 'false')</l>
 <l>dev_set_line_width (3)</l>
@@ -25,8 +25,8 @@
 <l>AcqName := 'PhoXi'</l>
 <l>info_framegrabber (AcqName, 'device', DeviceInfo, DeviceValues)</l>
 <c>** Connect to scanner via serial number or index in DeviceValues[idx]</c>
-<l>open_framegrabber (AcqName, 1, 1, 0, 0, 0, 0, 'default', -1, 'default', -1, 'false', 'default', 'test', -1, -1, AcqHandle)</l>
-<l>* open_framegrabber (AcqName, 1, 1, 0, 0, 0, 0, 'default', -1, 'default', -1, 'false', 'default', DeviceValues[0], -1, -1, AcqHandle)</l>
+<l>* open_framegrabber (AcqName, 1, 1, 0, 0, 0, 0, 'default', -1, 'default', -1, 'false', 'default', 'test', -1, -1, AcqHandle)</l>
+<l>open_framegrabber (AcqName, 1, 1, 0, 0, 0, 0, 'default', -1, 'default', -1, 'false', 'default', DeviceValues[0], -1, -1, AcqHandle)</l>
 <c>** Check which output data are supported (in PhoXiControl &gt; OutputStructure &gt; Mark desired data &gt; press Set)</c>
 <l>get_framegrabber_param (AcqHandle, 'grab_data_items', AvailableDataToReturn)</l>
 <c>** Default is 'enabled' for both params</c>
@@ -68,7 +68,7 @@
 <l>scale_image (Texture, ImageScaled, 0.06, 0)</l>
 <l>convert_image_type (ImageScaled, Image8Bit, 'byte')</l>
 <c>*/调整图像对比度</c>
-<l>scale_image (Image8Bit, Image, 5, 0)</l>
+<l>scale_image (Image8Bit, Image, 2.5, 0)</l>
 <l>get_grayval (Image, Rows, Columns, Intensity)</l>
 <l>set_object_model_3d_attrib_mod (ObjectModel3D, '&amp;intensity', 'points', Intensity)</l>
 <l>visualize_object_model_3d (WindowHandle, ObjectModel3D, CamParam, [], GenParamName, GenParamValue, [], [], [], Pose)  </l>
@@ -92,8 +92,7 @@
 <l>gen_circle (CircleROI, Row3, Column3, Radius3)</l>
 <l>reduce_domain (Image, CircleROI, ImageReduced)</l>
 <l>edges_sub_pix (ImageReduced, Circle0_Edges, 'canny', 2, 20, 60)</l>
-<l>select_shape_xld (Circle0_Edges, Circle0_Edges_select, ['contlength','circularity'], 'and', [50,0.4],[300,1])     </l>
-<l>* count_obj (Circle0_Edges_select, Circle0_Number)</l>
+<l>select_shape_xld (Circle0_Edges, Circle0_Edges_select, ['contlength','circularity'], 'and', [50,0.6],[500,1])     </l>
 <l>count_obj (Circle0_Edges_select, Circle0_Number)</l>
 <l>CircleOrEllipse:=1   //正圆椭圆标志:1正圆 0椭圆</l>
 <l>if (Circle0_Number==2)</l>
@@ -172,7 +171,6 @@
 <c></c>
 <c>**************************使用标定数据*************************</c>
 <c></c>
-<c></c>
 <l>convert_pose_type (Cam_H_Circle_gba, 'Rp+T', 'abg', 'point', Cam_H_Circle)</l>
 <l>* create_pose (142.207 , -547.068, 1877.13,  175.096, 6.766, 314.07, 'Rp+T', 'abg', 'point', Cam_H_Base)</l>
 <l>read_pose ('D:/Qu/GitHub/Calibration/ENAC_eyehand_calibration/results/Cam_H_Base.dat', Cam_H_Base)</l>
@@ -182,18 +180,13 @@
 <l>pose_compose (Base_H_Cam, Cam_H_Circle, ObjInBasePose)</l>
 <c></c>
 <c></c>
-<c></c>
-<c></c>
 <c>**********************************calc distance******************************************</c>
-<c></c>
-<l>* create_pose (0.17, -0.05, 1.71, 35, 13, 225, 'Rp+T', 'abg', 'point', Cam2Obj)</l>
-<c></c>
 <c></c>
 <c>* get cam2obj pose</c>
 <c></c>
-<l>read_pose ('D:/Qu/GitHub/Calibration/ENAC_eyehand_calibration/circle.dat',Cam2Circle)</l>
-<l>Cam2Obj := Cam2Circle</l>
-<l>* Cam2Obj := Cam_H_Circle</l>
+<l>*  read_pose ('D:/Qu/GitHub/Calibration/ENAC_eyehand_calibration/circle.dat',Cam2Circle)</l>
+<l>* Cam2Obj := Cam2Circle</l>
+<l>Cam2Obj := Cam_H_Circle</l>
 <c></c>
 <c></c>
 <c>* init parameter</c>
@@ -234,7 +227,8 @@
 <c>**********************************test******************************************</c>
 <c></c>
 <l>read_pose ('results/Cam_H_Base.dat', Cam2Base)</l>
-<l>read_pose ('D:/Qu/GitHub/Calibration/ENAC_eyehand_calibration/circle.dat',Cam2Circle)</l>
+<l>* read_pose ('D:/Qu/GitHub/Calibration/ENAC_eyehand_calibration/circle.dat',Cam2Circle)</l>
+<l>Cam2Circle := Cam2Obj</l>
 <l>pose_invert (Cam2Base, Base2Cam)</l>
 <l>Cam2CircleTemp := Cam2Circle</l>
 <c></c>
