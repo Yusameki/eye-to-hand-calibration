@@ -183,7 +183,7 @@
 <c>    *CalObjInCamPose = BaseInCamPose*ToolInBasePose*CalObjInToolPose</c>
 <c>    *base in cam - tool in base = tool in cam</c>
 <l>    pose_compose (Cam2Base, Base2Tool, Cam2Tool) </l>
-<l>*     pose_compose (ReCam2Base, Base2Tool, Cam2Tool) </l>
+<l>*     pose_compose (ReCam2Base, Base2Tool, Cam2Tool)</l>
 <l>    pose_compose (Cam2Tool, Tool2Obj, CalCam2Obj)</l>
 <l>    CalCam2ObjTemp := CalCam2Obj</l>
 <l>    CalCam2ObjTemp[0:2] := CalCam2ObjTemp[0:2]*1000</l>
