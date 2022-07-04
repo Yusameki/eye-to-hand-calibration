@@ -19,8 +19,6 @@
 <l>GenParamValue := ['true','&amp;intensity']</l>
 <c></c>
 <l>create_calib_data ('hand_eye_stationary_cam', 0, 0, HECCalibDataID)</l>
-<c>*设置手眼校准过程中要使用的优化方法。如果设置了 DataValue = 'nonlinear'，则将非线性方法用于手眼校准</c>
-<c>*姿态最准确的优化方法是非线性方法</c>
 <l>set_calib_data (HECCalibDataID, 'model', 'general','optimization_method', 'nonlinear')  </l>
 <c></c>
 <c>*****************************创建球体模型***************************</c>
@@ -72,7 +70,6 @@
 <l>select_obj (ImageData, DepthMap, 4)</l>
 <l>select_obj (ImageData, ConfidenceMap, 5)</l>
 <c>** Transform from [mm] to [m]</c>
-<l>* scale_image (PointCloud, PointCloud, 1e-3, 0)</l>
 <l>decompose3 (PointCloud, X, Y, Z)</l>
 <l>decompose3 (Normals, nX, nY, nZ)</l>
 <c>** Find the valid region</c>
@@ -93,13 +90,10 @@
 <l>set_object_model_3d_attrib_mod (ObjectModel3D, ['point_normal_x','point_normal_y','point_normal_z'], [], [NX,NY,NZ])</l>
 <c>**********************调整Texture图像类型及对比度***********************</c>
 <l>min_max_gray (Texture, Texture, 0, Min, Max, Range)</l>
-<c>*/由于photoneo输出的图像为16bit(0-65535)图像</c>
-<c>*/缩放图像:实现灰度变换，像素调整至0-255</c>
 <l>scale_image (Texture, ImageScaled, 0.06, 0)</l>
 <l>convert_image_type (ImageScaled, Image8Bit, 'byte')</l>
 <c>*/调整图像对比度</c>
 <l>scale_image (Image8Bit, Image, 3, 0)</l>
-<l>* write_image (Image, 'png', 0, 'F:/test/calibrate_3D/自制标定板/ImageModel_diameter8.png')</l>
 <l>get_grayval (Image, Rows, Columns, Intensity)</l>
 <l>set_object_model_3d_attrib_mod (ObjectModel3D, '&amp;intensity', 'points', Intensity)</l>
 <l>visualize_object_model_3d (WindowHandle, ObjectModel3D, CamParam, [], GenParamName, GenParamValue, [], [], [], Pose)  </l>
@@ -111,7 +105,7 @@
 <l>visualize_object_model_3d (WindowHandle, ObjectModel3D, CamParam, [], GenParamName, GenParamValue, [], [], [], Pose)</l>
 <c></c>
 <l>stop()</l>
-<l>write_object_model_3d (    ObjectModel3D,'om3','pointcloud/3d_CalBoarde_10.om3', [], [])</l>
+<l>write_object_model_3d (ObjectModel3D,'om3','pointcloud/3d_CalBoarde_10.om3', [], [])</l>
 <c></c>
 <c></c>
 <c>***********************获取位姿*********************</c>
@@ -131,9 +125,84 @@
 <c></c>
 <c></c>
 <c></c>
+<c></c>
 </body>
 <docu id="main">
 <parameters/>
+</docu>
+</procedure>
+<procedure name="UR_socket_read_tool_pose">
+<interface>
+<ic>
+<par name="Socket" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="Base2Tool" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<c>*适用UR系统版本V3.7</c>
+<l>receive_data (Socket, ['i'], MessageSize, From)</l>
+<l>receive_data (Socket, ['d'], Time, From)</l>
+<l>receive_data (Socket, ['d6'], TargetJointPositions, From)</l>
+<l>tuple_deg (TargetJointPositions, Joint)</l>
+<l>receive_data (Socket, ['d48'], Answer, From)</l>
+<l>receive_data (Socket, ['d6'], Actual, From)</l>
+<l>receive_data (Socket, ['d12'], Answer, From)</l>
+<l>receive_data (Socket, ['d6'], Target, From)</l>
+<l>receive_data (Socket, ['c472'], Answer, From)</l>
+<l>RotVector := [Target[3:5]]</l>
+<l>theta := sqrt(sum(RotVector * RotVector))</l>
+<l>create_matrix (3, 3, [1, 0,0,0,1,0,0,0,1], I)</l>
+<l>RotVectorNorm := RotVector / sqrt(sum(RotVector * RotVector))</l>
+<l>create_matrix (3, 1, RotVectorNorm, r)</l>
+<l>transpose_matrix (r, rT)</l>
+<l>CosTheta := cos(theta)</l>
+<l>scale_matrix (I, CosTheta, CosThetaI)</l>
+<l>r_ := RotVectorNorm</l>
+<l>create_matrix (3, 3, [0,-r_[2],r_[1],r_[2],0,-r_[0],-r_[1],r_[0],0], AntisymmetricMatrix)</l>
+<l>mult_matrix (r, rT, 'AB', r_rT)</l>
+<l>scale_matrix (r_rT, 1-CosTheta, _1_Cosr_rT)</l>
+<l>add_matrix (CosThetaI, _1_Cosr_rT, MatrixSumID)</l>
+<l>SinTheta := sin(theta)</l>
+<l>scale_matrix (AntisymmetricMatrix, SinTheta, SinTheta_AntisymmetricMatrix)</l>
+<l>add_matrix (MatrixSumID, SinTheta_AntisymmetricMatrix, RotationMatrix)</l>
+<l>transpose_matrix (RotationMatrix, RotationMatrix_T)</l>
+<l>mult_matrix (RotationMatrix, RotationMatrix_T, 'AB', A_AT)</l>
+<l>determinant_matrix (RotationMatrix, 'general', RotationMatrix_det)</l>
+<l>determinant_matrix (A_AT, 'general', det)</l>
+<l>tuple_string (RotationMatrix_det, '.1f', String)</l>
+<l>if (String!='1.0')</l>
+<l>    stop ()</l>
+<l>    dev_disp_text ('获取位姿error', 'window', 'top', 'left', 'black', [], [])</l>
+<l>    return ()</l>
+<l>endif</l>
+<l>get_full_matrix (RotationMatrix, R)</l>
+<l>sy := 0.0000000000000000000000000000000001</l>
+<c></c>
+<l>if (R[0]*R[0]+R[3]*R[3] &gt; sy)</l>
+<l>    theta_y := atan2(-R[6],sqrt(R[7]*R[7]+R[8]*R[8]))</l>
+<l>    RY := deg(theta_y)</l>
+<l>    theta_x := atan2(R[7]/cos(theta_y),R[8]/cos(theta_y))</l>
+<l>    RX := deg(theta_x)</l>
+<l>    theta_z := atan2(R[3]/cos(theta_y),R[0]/cos(theta_y))</l>
+<l>    RZ := deg(theta_z)</l>
+<l>else</l>
+<l>    theta_x := atan2(-R[5],R[4])</l>
+<l>    RX := deg(theta_x)</l>
+<l>    theta_y := atan2(-R[6],sy)</l>
+<l>    RY := deg(theta_y)</l>
+<l>    RZ := 0</l>
+<l>endif</l>
+<l>create_pose (Target[0], Target[1], Target[2], RX, RY, RZ, 'Rp+T', 'abg', 'point', Base2Tool)</l>
+<c></c>
+<l>return ()</l>
+</body>
+<docu id="UR_socket_read_tool_pose">
+<parameters>
+<parameter id="Base2Tool"/>
+<parameter id="Socket"/>
+</parameters>
 </docu>
 </procedure>
 </hdevelop>
