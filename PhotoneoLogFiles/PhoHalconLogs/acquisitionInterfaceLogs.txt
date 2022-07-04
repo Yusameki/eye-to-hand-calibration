@@ -24,3 +24,4 @@
 [2022-06-29 10:15:17.066] [HALCON-spdlogger] [error] !!!  FGOpen: Requested device [test] is not available
 [2022-06-29 10:15:46.394] [HALCON-spdlogger] [error] !!!  FGOpen: Requested device [test] is not available
 [2022-06-29 13:25:04.066] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage DVA-135: PFrame object is nullptr
+[2022-07-04 10:21:14.404] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage DVA-135: PFrame object is nullptr
