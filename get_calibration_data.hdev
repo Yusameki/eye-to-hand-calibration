@@ -8,8 +8,8 @@
 <l>gen_cam_par_area_scan_division (0.0078066255, -0.121916, 0.00000345,0.00000345,1071.03,793.9,2064,1544, CamParam)</l>
 <l>get_cam_par_data (CamParam, 'image_width', ImageWidth)</l>
 <l>get_cam_par_data (CamParam, 'image_height', ImageHeight)</l>
-<l>WindowWidth := ImageWidth*8/20</l>
-<l>WindowHeight := ImageHeight*8/20</l>
+<l>WindowWidth := ImageWidth*7/20</l>
+<l>WindowHeight := ImageHeight*7/20</l>
 <l>dev_open_window (0, 0, WindowWidth, WindowHeight, 'black', WindowHandle)</l>
 <l>set_display_font (WindowHandle, 16, 'mono', 'true', 'false')</l>
 <l>dev_set_line_width (3)</l>
@@ -33,14 +33,14 @@
 <l>get_surface_model_param (SphereSurfaceModelID, 'sampled_model', SphereSampledModel)</l>
 <l>Title := 'Calibration sphere that will be used for surface-based matching.'</l>
 <l>Title[|Title|] := 'Radius: ' + SphereRadius</l>
-<l>visualize_object_model_3d (WindowHandle, [SphereSampledModel,SphereOM3D], [], [], ['disp_pose','color','point_size','disp_normals','normal_color'], ['true','green',3,'true','gray'], Title, [], [], PoseOut)</l>
+<l>* visualize_object_model_3d (WindowHandle, [SphereSampledModel,SphereOM3D], [], [], ['disp_pose','color','point_size','disp_normals','normal_color'], ['true','green',3,'true','gray'], Title, [], [], PoseOut)</l>
 <l>read_object_model_3d ('标定块', 'm', [], [], BoardOM3D, Status)</l>
 <c></c>
 <l>* read_object_model_3d ('biaodingkuai.stl', 'm', [], [], BoardOM3D, Status)</l>
 <c></c>
 <l>create_surface_model (BoardOM3D, 0.02, [], [], BoardSurfaceModelID)</l>
 <l>get_surface_model_param (BoardSurfaceModelID, 'sampled_model', BoardSampledModel)</l>
-<l>visualize_object_model_3d (WindowHandle, [BoardSampledModel], [], [], ['disp_pose','color','point_size','disp_normals','normal_color'], ['true','green',3,'true','gray'], [], [], [], PoseOut)</l>
+<l>* visualize_object_model_3d (WindowHandle, [BoardSampledModel], [], [], ['disp_pose','color','point_size','disp_normals','normal_color'], ['true','green',3,'true','gray'], [], [], [], PoseOut)</l>
 <c></c>
 <l>stop ()</l>
 <c></c>
@@ -109,77 +109,22 @@
 <l>draw_region (Region, WindowHandle)</l>
 <l>reduce_object_model_3d_by_view (Region, ObjectModel3D, CamParam, Pose, ObjectModel3D) </l>
 <l>visualize_object_model_3d (WindowHandle, ObjectModel3D, CamParam, [], GenParamName, GenParamValue, [], [], [], Pose)</l>
-<c>*只有保存为om3格式才能用'from_xyz_map'重投影生成X\Y\Z图像</c>
-<c></c>
-<l>*         filename := 'pointcloud/CalibrateFile_' + I$'02d'</l>
-<l>          filename := 'pointcloud/3d_CalBoarde_' + I$'02d'</l>
-<c></c>
-<c>        */以m为单位读取点云文件</c>
-<l>        read_object_model_3d (filename,  'm', [], [], ObjectModel3D, Status)     </l>
-<l>*         visualize_object_model_3d (WindowHandle, ObjectModel3D, CamParam, [], GenParamName, GenParamValue, [], [], [], Pose)</l>
-<l>        object_model_3d_to_xyz (X, Y, Z, ObjectModel3D,'from_xyz_map', [], [])</l>
-<c>        *获取图像行列坐标</c>
-<l>        get_region_points (Z, CalBoard_Rows, CalBoard_Columns)</l>
-<c>        *获取点云灰度值</c>
-<l>        get_object_model_3d_params (ObjectModel3D, '&amp;intensity', intensity)</l>
-<c>        *直接创建byte类型的图像,find_data_code_2d输入图像要为byte类型</c>
-<l>        gen_image_const (Image, 'byte', 2064, 1544)</l>
-<c>        *将灰度值写入图像对应的行列坐标---拿到标定板图像</c>
-<l>        set_grayval (Image, CalBoard_Rows, CalBoard_Columns, intensity)</l>
-<l>        scale_image (Image, Image, 1, 0)</l>
-<l>        dev_display (Image)</l>
-<l>*         stop ()</l>
-<c></c>
-<l>*             visualize_object_model_3d (WindowHandle, [ObjectModel3D], [], [], [GenParamName], [GenParamValue], [], [], [], VisPose)</l>
-<l>connection_object_model_3d (ObjectModel3D, ['distance_3d'], 2, ObjectModel3DConnected)</l>
-<l>select_object_model_3d (ObjectModel3DConnected, 'num_points', 'and', 200, 5000000, ObjectModel3DSelected)</l>
-<c>*联合连通域-&gt;将多个3D对象模型组合到新的3D对象模型中  </c>
-<l>union_object_model_3d (ObjectModel3DSelected, 'points_surface', UnionObjectModel3D)</l>
-<l>*             visualize_object_model_3d (WindowHandle, [UnionObjectModel3D], [], [], [GenParamName], [GenParamValue], [], [], [], VisPose)</l>
-<l>smooth_object_model_3d (UnionObjectModel3D, 'mls', [], [], SmoothObjectModel3D)    </l>
-<l>    find_surface_model (SphereSurfaceModelID, SmoothObjectModel3D, 0.05, 0.2, 0.15, 'false', [], [], Sphere_Cam_H_Obj, SphereScore, SphereSurfaceMatchingResultID)</l>
-<l>    Params := ['num_matches','scene_normal_computation','max_overlap_dist_rel','pose_ref_sub_sampling','scene_normal_computation','pose_ref_num_steps']</l>
-<l>    Values := [1,'mls',1,2,'mls',5]</l>
-<l>    find_surface_model (BoardSurfaceModelID, SmoothObjectModel3D, 0.02, 0.5, 0.1, 'false', Params,Values, Board_Cam_H_Obj, BoardScore, BoardSurfaceMatchingResultID)</l>
-<l>    if (|SphereScore|=1 and |BoardScore|=1)</l>
-<c>        *优化3D场景中曲面模型的姿态</c>
-<l>*         refine_surface_model_pose (SphereSurfaceModelID, SmoothObjectModel3D, Sphere_Cam_H_Obj, 0, 'false', [], [], Sphere_Cam_H_Obj, SphereScore, SphereSurfaceMatchingResultID1)</l>
-<l>*         convert_pose_type (Sphere_Cam_H_Obj, 'Rp+T', 'abg', 'point', Sphere_Cam_H_Obj_abg)//-360</l>
-<l>        rigid_trans_object_model_3d (SphereOM3D, Sphere_Cam_H_Obj, SphereOM3DRigidTrans)</l>
-<l>*         visualize_object_model_3d (WindowHandle, [ObjectModel3D,SphereOM3DRigidTrans], [], [], ['color_0','color_1','point_size'], ['gray','green',2], [], [], [], VisPose)</l>
-<l>*         refine_surface_model_pose (BoardSurfaceModelID, SmoothObjectModel3D, Board_Cam_H_Obj, 0, 'false', [], [], Board_Cam_H_Obj, BoardScore, BoardSurfaceMatchingResultID1)</l>
-<l>*         convert_pose_type (Board_Cam_H_Obj, 'Rp+T', 'abg', 'point', Board_Cam_H_Obj_abg)//-360</l>
-<l>        rigid_trans_object_model_3d (BoardOM3D, Board_Cam_H_Obj, BoardOM3DRigidTrans)</l>
-<c>        </c>
-<l>        Message := 'Scene: '</l>
-<l>        dev_clear_window ()   </l>
-<l>        visualize_object_model_3d (WindowHandle, [SmoothObjectModel3D,SphereOM3DRigidTrans,BoardOM3DRigidTrans], [], [], ['intensity_0','color_1','color_2'], ['&amp;intensity','red','green'], [], [], Message, PoseOut1)    </l>
-<l>*         stop ()</l>
-<c></c>
-<l>        convert_pose_type (Sphere_Cam_H_Obj, 'Rp+T', 'abg', 'point', Sphere_Cam_H_Obj_abg)</l>
-<l>        convert_pose_type (Board_Cam_H_Obj, 'Rp+T', 'abg', 'point', Board_Cam_H_Obj_abg)</l>
-<c>        </c>
-<l>*         create_pose (Sphere_Cam_H_Obj[0], Sphere_Cam_H_Obj[1], Sphere_Cam_H_Obj[2],\ 
-        Board_Cam_H_Obj[3], Board_Cam_H_Obj[4], Board_Cam_H_Obj[5], 'Rp+T', 'gba', 'point', Cam_H_Obj)</l>
-<l>        create_pose (Sphere_Cam_H_Obj_abg[0], Sphere_Cam_H_Obj_abg[1], Sphere_Cam_H_Obj_abg[2],\ 
-                     Board_Cam_H_Obj_abg[3], Board_Cam_H_Obj_abg[4], Board_Cam_H_Obj_abg[5], 'Rp+T', 'abg', 'point', Cam_H_Obj_abg)</l>
-<c>        </c>
-<c>        *Transform from [mm] to [m]</c>
-<l>        Cam_H_Obj_m := Cam_H_Obj_abg</l>
-<l>        Cam_H_Obj_m[0:2] := Cam_H_Obj_m[0:2]/1000  //将单位改为m</l>
-<l>*         dev_inspect_ctrl (Cam_H_Obj)</l>
-<l>    else</l>
-<l>        disp_message (WindowHandle,  '标定物匹配失败', 'window', 40, 12, 'black', 'true')</l>
-<l>        stop ()</l>
-<l>    endif</l>
 <c></c>
 <l>stop()</l>
 <l>write_object_model_3d (    ObjectModel3D,'om3','pointcloud/3d_CalBoarde_10.om3', [], [])</l>
 <c></c>
 <c></c>
+<c>***********************获取位姿*********************</c>
 <c></c>
+<l>Protocol := 'TCP4'</l>
+<l>Timeout := 3.0</l>
+<l>open_socket_connect ('10.0.1.0', 30003, ['protocol','timeout'], [Protocol,Timeout], Socket)</l>
+<l>get_socket_param (Socket, 'address_info', Address)</l>
+<l>UR_socket_read_tool_pose (Socket, Base2Tool)</l>
 <c></c>
+<l>stop()</l>
 <c></c>
+<l>write_pose (Base2Tool, 'pose/robot_pose_10.dat')</l>
 <c></c>
 <c></c>
 <c></c>
