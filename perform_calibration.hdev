@@ -24,11 +24,9 @@
 <c>*create calibration data</c>
 <l>create_calib_data ('hand_eye_stationary_cam', 0, 0, HECCalibDataID)</l>
 <c></c>
-<c>*设置手眼校准过程中要使用的优化方法。如果设置了 DataValue = 'nonlinear'，则将非线性方法用于手眼校准</c>
-<c>*姿态最准确的优化方法是非线性方法</c>
 <l>set_calib_data (HECCalibDataID, 'model', 'general','optimization_method', 'nonlinear')  </l>
 <c></c>
-<c>*****************************创建球体模型***************************</c>
+<c>*****************************creat model***************************</c>
 <l>SphereRadius:=27.7</l>
 <l>gen_sphere_object_model_3d ([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0], SphereRadius, SphereOM3D)</l>
 <l>convex_hull_object_model_3d (SphereOM3D, SphereOM3D)</l>
@@ -38,12 +36,12 @@
 <l>get_surface_model_param (SphereSurfaceModelID, 'sampled_model', SphereSampledModel)</l>
 <l>Title := 'Calibration sphere that will be used for surface-based matching.'</l>
 <l>Title[|Title|] := 'Radius: ' + SphereRadius</l>
-<l>visualize_object_model_3d (WindowHandle, [SphereSampledModel,SphereOM3D], [], [], ['disp_pose','color','point_size','disp_normals','normal_color'], ['true','green',3,'true','gray'], Title, [], [], PoseOut)</l>
+<l>* visualize_object_model_3d (WindowHandle, [SphereSampledModel,SphereOM3D], [], [], ['disp_pose','color','point_size','disp_normals','normal_color'], ['true','green',3,'true','gray'], Title, [], [], PoseOut)</l>
 <l>read_object_model_3d ('BoardSurfaceModel', 'm', [], [], BoardOM3D, Status)</l>
 <c></c>
 <l>create_surface_model (BoardOM3D, 0.02, [], [], BoardSurfaceModelID)</l>
 <l>get_surface_model_param (BoardSurfaceModelID, 'sampled_model', BoardSampledModel)</l>
-<l>visualize_object_model_3d (WindowHandle, [BoardSampledModel], [], [], ['disp_pose','color','point_size','disp_normals','normal_color'], ['true','green',3,'true','gray'], [], [], [], PoseOut)</l>
+<l>* visualize_object_model_3d (WindowHandle, [BoardSampledModel], [], [], ['disp_pose','color','point_size','disp_normals','normal_color'], ['true','green',3,'true','gray'], [], [], [], PoseOut)</l>
 <c></c>
 <l>stop ()</l>
 <c></c>
@@ -77,7 +75,7 @@
 <c>        *将灰度值写入图像对应的行列坐标---拿到标定板图像</c>
 <l>        set_grayval (Image, CalBoard_Rows, CalBoard_Columns, intensity)</l>
 <l>        scale_image (Image, Image, 1, 0)</l>
-<l>        dev_display (Image)</l>
+<l>        dev_display (Image) </l>
 <c>    </c>
 <l>    connection_object_model_3d (ObjectModel3D, ['distance_3d'], 2, ObjectModel3DConnected)</l>
 <l>    select_object_model_3d (ObjectModel3DConnected, 'num_points', 'and', 200, 5000000, ObjectModel3DSelected)</l>
