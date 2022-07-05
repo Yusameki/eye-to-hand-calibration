@@ -18,14 +18,11 @@
 <l>GenParamName := ['disp_pose','intensity']</l>
 <l>GenParamValue := ['true','&amp;intensity']</l>
 <c></c>
-<l>create_calib_data ('hand_eye_stationary_cam', 0, 0, HECCalibDataID)</l>
-<l>set_calib_data (HECCalibDataID, 'model', 'general','optimization_method', 'nonlinear')  </l>
 <c></c>
-<c>*****************************创建球体模型***************************</c>
+<c>*****************************set models***************************</c>
 <l>SphereRadius:=27.7</l>
 <l>gen_sphere_object_model_3d ([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0], SphereRadius, SphereOM3D)</l>
 <l>convex_hull_object_model_3d (SphereOM3D, SphereOM3D)</l>
-<c>*创建模板,法线</c>
 <l>create_surface_model (SphereOM3D, 0.02, 'model_invert_normals', 'true', SphereSurfaceModelID)</l>
 <c>* Visualize model for surface-based matching.</c>
 <l>get_surface_model_param (SphereSurfaceModelID, 'sampled_model', SphereSampledModel)</l>
@@ -42,7 +39,7 @@
 <c></c>
 <l>stop ()</l>
 <c></c>
-<c>*****************************设置相机***************************</c>
+<c>*****************************camera setting***************************</c>
 <c></c>
 <c>** PhoXiControl must be running</c>
 <l>AcqName := 'PhoXi'</l>
@@ -58,8 +55,7 @@
 <l>GrabDataItems:=['Texture', 'PointCloud', 'NormalMap', 'DepthMap', 'ConfidenceMap']</l>
 <l>set_framegrabber_param (AcqHandle, 'grab_data_items', GrabDataItems)</l>
 <c></c>
-<c></c>
-<c>*****************************采集数据***************************</c>
+<c>*****************************grab point cloud***************************</c>
 <c></c>
 <l>grab_image_async (TextureImage, AcqHandle, 0)</l>
 <l>grab_data_async (ImageData, Region, Contours, AcqHandle, 0, Data)</l>
@@ -111,7 +107,6 @@
 <c></c>
 <l>cloudsavename := 'pointcloud/3d_CalBoarde_' + S$'02d' + '.om3'</l>
 <l>write_object_model_3d (ObjectModel3D,'om3',cloudsavename, [], [])</l>
-<c></c>
 <c></c>
 <c>***********************获取位姿*********************</c>
 <c></c>

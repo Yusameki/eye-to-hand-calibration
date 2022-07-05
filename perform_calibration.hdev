@@ -45,7 +45,7 @@
 <c></c>
 <l>stop ()</l>
 <c></c>
-<l>calibration := 0</l>
+<l>calibration := 1</l>
 <c></c>
 <l>if(calibration=1)</l>
 <l>    RemoveNumber:=[]    //remove unused point</l>
