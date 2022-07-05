@@ -32,7 +32,7 @@
 <l>Title := 'Calibration sphere that will be used for surface-based matching.'</l>
 <l>Title[|Title|] := 'Radius: ' + SphereRadius</l>
 <l>* visualize_object_model_3d (WindowHandle, [SphereSampledModel,SphereOM3D], [], [], ['disp_pose','color','point_size','disp_normals','normal_color'], ['true','green',3,'true','gray'], Title, [], [], PoseOut)</l>
-<l>read_object_model_3d ('标定块', 'm', [], [], BoardOM3D, Status)</l>
+<l>read_object_model_3d ('BoardSurfaceModel', 'm', [], [], BoardOM3D, Status)</l>
 <c></c>
 <l>* read_object_model_3d ('biaodingkuai.stl', 'm', [], [], BoardOM3D, Status)</l>
 <c></c>
