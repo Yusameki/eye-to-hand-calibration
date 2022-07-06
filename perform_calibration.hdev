@@ -119,7 +119,6 @@
 <c>       </c>
 <c>        *Transform from [mm] to [m]</c>
 <l>        Base_H_Tool_m := Base_H_Tool</l>
-<l>*         Base_H_Tool_m[0:2] := Base_H_Tool_m[0:2] * 0.001</l>
 <l>        if (|SphereScore|=1 and |BoardScore|=1)</l>
 <l>            set_calib_data (HECCalibDataID, 'tool', RealNumCalibrationScenes, 'tool_in_base_pose', Base_H_Tool_m)    //将ToolInBasePose(机器人工具的位姿)输入标定数据模型</l>
 <l>            set_calib_data_observ_pose (HECCalibDataID, 0, 0, RealNumCalibrationScenes, Cam_H_Obj_m)                 //将ObjInCamPose(校准对象的位姿)输入标定数据模型      </l>
@@ -146,8 +145,6 @@
 <c>    * Obtain the results of the hand-eye calibration and save them to file.</c>
 <l>    get_calib_data (HECCalibDataID, 'camera', 0, 'base_in_cam_pose', Cam_H_Base)</l>
 <l>    get_calib_data (HECCalibDataID, 'calib_obj', 0, 'obj_in_tool_pose', Tool_H_Obj)</l>
-<l>*     pose_invert (Cam_H_Base, Base_H_Cam) </l>
-<l>*     write_pose (Base_H_Cam, 'campose.dat')</l>
 <c>    *Transform from [mm] to [m]</c>
 <l>    Cam_H_Base_mm:=Cam_H_Base </l>
 <l>    Cam_H_Base_mm[0:2]:=Cam_H_Base_mm[0:2]*1000</l>
