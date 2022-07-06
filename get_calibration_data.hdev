@@ -95,7 +95,7 @@
 <c></c>
 <c></c>
 <c>***********************保存点云进行离线标定*********************</c>
-<l>S := 1</l>
+<l>S := 100</l>
 <c></c>
 <l>dev_set_part (0, 0, ImageHeight, ImageWidth)//显示完整图像    </l>
 <l>draw_region (Region, WindowHandle)</l>
