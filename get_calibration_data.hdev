@@ -31,7 +31,6 @@
 <l>* visualize_object_model_3d (WindowHandle, [SphereSampledModel,SphereOM3D], [], [], ['disp_pose','color','point_size','disp_normals','normal_color'], ['true','green',3,'true','gray'], Title, [], [], PoseOut)</l>
 <l>read_object_model_3d ('BoardSurfaceModel', 'm', [], [], BoardOM3D, Status)</l>
 <c></c>
-<l>* read_object_model_3d ('biaodingkuai.stl', 'm', [], [], BoardOM3D, Status)</l>
 <c></c>
 <l>create_surface_model (BoardOM3D, 0.02, [], [], BoardSurfaceModelID)</l>
 <l>get_surface_model_param (BoardSurfaceModelID, 'sampled_model', BoardSampledModel)</l>
@@ -120,10 +119,6 @@
 <c></c>
 <l>posesavename := 'pose/robot_pose_' + S$'02d' + '.dat'</l>
 <l>write_pose (Base2Tool, posesavename)</l>
-<c></c>
-<c></c>
-<c></c>
-<c></c>
 <c></c>
 <c></c>
 <c></c>
