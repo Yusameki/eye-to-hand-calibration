@@ -4,7 +4,7 @@
 <interface/>
 <body>
 <c>************************************************************************/																													</c>
-<c>*标定精度验证</c>
+<c>* evaluation of eye hand calibration</c>
 <c>************************************************************************/</c>
 <l>dev_update_off ()</l>
 <l>dev_close_window ()</l>
@@ -172,8 +172,7 @@
 <c>**************************使用标定数据*************************</c>
 <c></c>
 <l>convert_pose_type (Cam_H_Circle_gba, 'Rp+T', 'abg', 'point', Cam_H_Circle)</l>
-<l>* create_pose (142.207 , -547.068, 1877.13,  175.096, 6.766, 314.07, 'Rp+T', 'abg', 'point', Cam_H_Base)</l>
-<l>read_pose ('D:/Qu/GitHub/Calibration/ENAC_eyehand_calibration/results/Cam_H_Base.dat', Cam_H_Base)</l>
+<l>read_pose ('./results/Cam_H_Base.dat', Cam_H_Base)</l>
 <l>Cam_H_Base[0:2] := Cam_H_Base[0:2]*1000</l>
 <c></c>
 <l>pose_invert (Cam_H_Base, Base_H_Cam)</l>
@@ -184,8 +183,6 @@
 <c></c>
 <c>* get cam2obj pose</c>
 <c></c>
-<l>*  read_pose ('D:/Qu/GitHub/Calibration/ENAC_eyehand_calibration/circle.dat',Cam2Circle)</l>
-<l>* Cam2Obj := Cam2Circle</l>
 <l>Cam2Obj := Cam_H_Circle</l>
 <c></c>
 <c></c>
@@ -227,7 +224,6 @@
 <c>**********************************test******************************************</c>
 <c></c>
 <l>read_pose ('results/Cam_H_Base.dat', Cam2Base)</l>
-<l>* read_pose ('D:/Qu/GitHub/Calibration/ENAC_eyehand_calibration/circle.dat',Cam2Circle)</l>
 <l>Cam2Circle := Cam2Obj</l>
 <l>pose_invert (Cam2Base, Base2Cam)</l>
 <l>Cam2CircleTemp := Cam2Circle</l>
@@ -246,13 +242,6 @@
 <c>**********************************test end******************************************</c>
 <c></c>
 <c>* calc ReBase2Obj</c>
-<l>* correctionname := 'Repose/Re_Cam2Base_' + MinDistance$'02d' + '.dat'</l>
-<l>* read_pose (correctionname, CoCam2Base)</l>
-<c></c>
-<l>* CoCam2Base[0:2] := CoCam2Base[0:2]*1000</l>
-<c></c>
-<l>* pose_invert (CoCam2Base, CoBase2Cam)</l>
-<l>* pose_compose (CoBase2Cam, Cam2Obj, CoBase2Obj)</l>
 <l>CoBase2Obj :=Base2CircleTemp</l>
 <c></c>
 <l>PI:=3.1415926</l>
