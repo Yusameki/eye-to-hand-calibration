@@ -95,14 +95,15 @@
 <c></c>
 <c></c>
 <c>***********************保存点云进行离线标定*********************</c>
-<l>S := 100</l>
-<c></c>
 <l>dev_set_part (0, 0, ImageHeight, ImageWidth)//显示完整图像    </l>
 <l>draw_region (Region, WindowHandle)</l>
 <l>reduce_object_model_3d_by_view (Region, ObjectModel3D, CamParam, Pose, ObjectModel3D) </l>
 <l>visualize_object_model_3d (WindowHandle, ObjectModel3D, CamParam, [], GenParamName, GenParamValue, [], [], [], Pose)</l>
 <c></c>
 <l>stop()</l>
+<c></c>
+<c></c>
+<l>S := 20</l>
 <c></c>
 <l>cloudsavename := 'pointcloud/3d_CalBoarde_' + S$'02d' + '.om3'</l>
 <l>write_object_model_3d (ObjectModel3D,'om3',cloudsavename, [], [])</l>
@@ -119,6 +120,8 @@
 <c></c>
 <l>posesavename := 'pose/robot_pose_' + S$'02d' + '.dat'</l>
 <l>write_pose (Base2Tool, posesavename)</l>
+<c></c>
+<l>read_pose (posesavename , pose111)</l>
 <c></c>
 <c></c>
 <c></c>
