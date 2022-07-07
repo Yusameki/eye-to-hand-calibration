@@ -8,7 +8,6 @@
 <c></c>
 <c>* preparation</c>
 <l>gen_cam_par_area_scan_division (0.008, 0, 5.2e-06,5.2e-06,1071.3,793.9,2064,1544, CamParam)</l>
-<l>* gen_cam_par_area_scan_division (0.0078066255, -0.121916, 0.00000345,0.00000345,1071.03,793.9,2064,1544, CamParam)</l>
 <l>get_cam_par_data (CamParam, 'image_width', ImageWidth)</l>
 <l>get_cam_par_data (CamParam, 'image_height', ImageHeight)</l>
 <l>WindowWidth := ImageWidth*7/20</l>
@@ -39,7 +38,7 @@
 <l>Title := 'Calibration sphere that will be used for surface-based matching.'</l>
 <l>Title[|Title|] := 'Radius: ' + SphereRadius</l>
 <l>visualize_object_model_3d (WindowHandle, [SphereSampledModel,SphereOM3D], [], [], ['disp_pose','color','point_size','disp_normals','normal_color'], ['true','green',3,'true','gray'], Title, [], [], PoseOut)</l>
-<l>read_object_model_3d ('标定块', 'm', [], [], BoardOM3D, Status)</l>
+<l>read_object_model_3d ('BoardSurfaceModel', 'm', [], [], BoardOM3D, Status)</l>
 <c></c>
 <l>create_surface_model (BoardOM3D, 0.02, [], [], BoardSurfaceModelID)</l>
 <l>get_surface_model_param (BoardSurfaceModelID, 'sampled_model', BoardSampledModel)</l>
@@ -173,7 +172,7 @@
 <c></c>
 <l>Cam2BaseTemp := Cam2Base</l>
 <c></c>
-<l>NumCalibrationScenes:=27</l>
+<l>NumCalibrationScenes:=20</l>
 <l>for J := 1 to NumCalibrationScenes by 1</l>
 <c>    </c>
 <l>    pointcloudname := 'pointcloud/3d_CalBoarde_' + J$'02d'</l>
@@ -265,8 +264,6 @@
 <l>X_ReCam2Obj :=[]</l>
 <l>Y_ReCam2Obj := []</l>
 <l>Z_ReCam2Obj := []</l>
-<c></c>
-<l>NumCalibrationScenes := 27</l>
 <c></c>
 <c>* prepare for calc distance</c>
 <l>for H := 1 to NumCalibrationScenes by 1</l>

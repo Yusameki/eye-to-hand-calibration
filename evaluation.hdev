@@ -68,7 +68,7 @@
 <l>scale_image (Texture, ImageScaled, 0.06, 0)</l>
 <l>convert_image_type (ImageScaled, Image8Bit, 'byte')</l>
 <c>*/调整图像对比度</c>
-<l>scale_image (Image8Bit, Image, 3, 0)</l>
+<l>scale_image (Image8Bit, Image, 6, 0)</l>
 <l>get_grayval (Image, Rows, Columns, Intensity)</l>
 <l>set_object_model_3d_attrib_mod (ObjectModel3D, '&amp;intensity', 'points', Intensity)</l>
 <l>visualize_object_model_3d (WindowHandle, ObjectModel3D, CamParam, [], GenParamName, GenParamValue, [], [], [], Pose)  </l>
@@ -194,7 +194,7 @@
 <l>Y_ReCam2Obj := []</l>
 <l>Z_ReCam2Obj := []</l>
 <c></c>
-<l>NumCalibrationScenes := 27</l>
+<l>NumCalibrationScenes := 20</l>
 <c></c>
 <c>* prepare for calc distance</c>
 <l>for H := 1 to NumCalibrationScenes by 1</l>
@@ -261,8 +261,6 @@
 <l>rx1:=CoBase2Obj[3]*PI/180</l>
 <l>ry1:=CoBase2Obj[4]*PI/180</l>
 <l>rz1:=CoBase2Obj[5]*PI/180</l>
-<c></c>
-<c></c>
 <c></c>
 <c></c>
 </body>
