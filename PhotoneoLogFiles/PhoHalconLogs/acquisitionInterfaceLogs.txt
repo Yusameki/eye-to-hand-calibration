@@ -27,3 +27,4 @@
 [2022-07-04 10:21:14.404] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage DVA-135: PFrame object is nullptr
 [2022-07-05 13:21:05.865] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage InstalledExamples-basic-example: PFrame object is nullptr
 [2022-07-06 14:05:53.876] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage InstalledExamples-basic-example: PFrame object is nullptr
+[2022-07-07 13:28:13.776] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage DVA-135: PFrame object is nullptr

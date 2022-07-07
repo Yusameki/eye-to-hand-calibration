@@ -49,7 +49,7 @@
 <c></c>
 <l>if(calibration=1)</l>
 <l>    RemoveNumber:=[]    //remove unused point</l>
-<l>    NumCalibrationScenes := 27          //max point num</l>
+<l>    NumCalibrationScenes := 20         //max point num</l>
 <l>    RealNumCalibrationScenes:=0         //real calibration point number</l>
 <l>    Num:=[]   //每个样本对应序号---用于后面验证标定结果时,根据序号读取对应样本点云</l>
 <l>    for I := 1 to NumCalibrationScenes by 1</l>
@@ -161,6 +161,63 @@
 <c></c>
 <c></c>
 <l>stop()</l>
+<c></c>
+<c>*******误差分析******</c>
+<c></c>
+<l>X_Camera_Board:=[]</l>
+<l>Y_Camera_Board:=[]</l>
+<l>Z_Camera_Board:=[]</l>
+<l>X_Camera_Board_Trans:=[]</l>
+<l>Y_Camera_Board_Trans:=[]</l>
+<l>Z_Camera_Board_Trans:=[]</l>
+<c>*计算所有标定样本的误差时需要保存下列位姿</c>
+<c></c>
+<c></c>
+<l>for H := 1 to RealNumCalibrationScenes by 1</l>
+<l>    get_calib_data_observ_points (HECCalibDataID, 0, 0, H, Rowtemp, Columntemp, Index,Cam_H_Board)</l>
+<l>    X_Camera_Board:=[X_Camera_Board,Cam_H_Board[0]*1000]</l>
+<l>    Y_Camera_Board:=[Y_Camera_Board,Cam_H_Board[1]*1000]</l>
+<l>    Z_Camera_Board:=[Z_Camera_Board,Cam_H_Board[2]*1000]  </l>
+<l>    get_calib_data (HECCalibDataID, 'tool', H, 'tool_in_base_pose', Base_H_Tool)</l>
+<l>    pose_compose (Base_H_Tool, Tool_H_Obj, Base_H_Board)</l>
+<l>    pose_compose (Cam_H_Base, Base_H_Board, Cam_H_Board_Trans)</l>
+<l>    X_Camera_Board_Trans:=[X_Camera_Board_Trans,Cam_H_Board_Trans[0]*1000]</l>
+<l>    Y_Camera_Board_Trans:=[Y_Camera_Board_Trans,Cam_H_Board_Trans[1]*1000]</l>
+<l>    Z_Camera_Board_Trans:=[Z_Camera_Board_Trans,Cam_H_Board_Trans[2]*1000]</l>
+<l>endfor</l>
+<c>* Calculate difference of corresponding coordinates.</c>
+<l>X_diff := X_Camera_Board_Trans - X_Camera_Board</l>
+<l>Y_diff := Y_Camera_Board_Trans - Y_Camera_Board</l>
+<l>Z_diff := Z_Camera_Board_Trans - Z_Camera_Board</l>
+<l>PoseErr := sqrt(X_diff * X_diff + Y_diff * Y_diff + Z_diff * Z_diff)//计算真实点和虚拟点的距离</l>
+<l>PoseErrMean := mean(PoseErr)</l>
+<l>PoseErrMax := max(PoseErr)</l>
+<c>* </c>
+<l>dev_open_window (0, WindowWidth + 10, 400, 800, 'black', WindowHandleText)</l>
+<l>set_display_font (WindowHandleText, 16, 'mono', 'true', 'false')</l>
+<l>Text := 'Mean error of poses: ' + (PoseErrMean)$'.5f' + ' mm'</l>
+<l>Text[|Text|] := 'Max error of poses: ' + (PoseErrMax)$'.5f' + ' mm'</l>
+<l>Text := [Text,[1:RealNumCalibrationScenes ] + ': ' + (PoseErr)$'.3f' + ' mm']</l>
+<l>Text := [Text,Warnings]</l>
+<l>dev_disp_text (Text, 'window', 'top', 'left', 'white', 'box', 'false')</l>
+<c>* </c>
+<l>stop ()</l>
+<l>dev_set_window (WindowHandle)</l>
+<l>dev_clear_window ()</l>
+<c>* Display calibration errors of the hand-eye calibration.</c>
+<l>Message := 'Quality of the results:'</l>
+<l>Message[1] := ' '</l>
+<l>Message[2] := 'Translation errors in mm: '</l>
+<l>MeanTransError := HECPoseError[0] * 1000</l>
+<l>MaxTransError := HECPoseError[2] * 1000</l>
+<l>Message[3] := 'root mean square    ' + MeanTransError$'6.4f'</l>
+<l>Message[4] := 'maximum             ' + MaxTransError$'6.4f'</l>
+<l>Message[5] := ' '</l>
+<l>Message[6] := 'Rotation error in degrees:        '</l>
+<l>Message[7] := 'root mean square    ' + HECPoseError[1]$'6.4f'</l>
+<l>Message[8] := 'maximum             ' + HECPoseError[3]$'6.4f'</l>
+<l>disp_message (WindowHandle, Message, 'window', 12, 12, 'black', 'true')</l>
+<l>disp_continue_message (WindowHandle, 'black', 'true')</l>
 </body>
 <docu id="main">
 <parameters/>
