@@ -278,7 +278,7 @@
 <l>    Y_ReCam2Obj := [Y_ReCam2Obj, Re_Cam2Obj[1]]</l>
 <l>    Z_ReCam2Obj := [Z_ReCam2Obj, Re_Cam2Obj[2]]</l>
 <c>      </c>
-<l>endfor </l>
+<l>endfor  </l>
 <c></c>
 <c>* Calculate obj distance</c>
 <l>X_diff := X_Cam2Obj - X_ReCam2Obj</l>

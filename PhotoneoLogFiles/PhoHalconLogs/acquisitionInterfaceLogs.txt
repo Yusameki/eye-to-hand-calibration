@@ -32,3 +32,5 @@
 [2022-07-07 17:15:28.871] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage DVA-135: FrameID is a negativ number: -1
 [2022-07-07 17:28:13.358] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage DVA-135: FrameID is a negativ number: -1
 [2022-07-07 17:28:42.270] [HALCON-spdlogger] [error] !!! AcquirePhoXiImage DVA-135: PFrame object is nullptr
+[2022-07-08 16:56:01.624] [HALCON-spdlogger] [error] !!! FGOpen DVA-135: Scanner DVA-135 is not connected
+[2022-07-08 17:00:12.131] [HALCON-spdlogger] [error] !!! FGOpen DVA-135: Scanner DVA-135 is not connected
