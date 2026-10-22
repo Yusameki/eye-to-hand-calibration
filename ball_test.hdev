@@ -245,7 +245,7 @@
 <l>* read_pose('campose.dat', Pose)</l>
 <c></c>
 <c>* read pose from validate program</c>
-<l>* read_pose ('D:/Qu/GitHub/Calibration/ENAC_eyehand_calibration/circle.dat',cam2circle)</l>
+<l>* read_pose ('circle.dat',cam2circle)</l>
 <c></c>
 <c></c>
 <c>* test</c>
