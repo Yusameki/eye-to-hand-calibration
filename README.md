@@ -2,71 +2,74 @@
 
 # 🔧 eye-to-hand-calibration
 
-**用 HALCON 做的一次手眼标定（eye-to-hand）**
+**An eye-to-hand calibration done with HALCON**
 
-<sub>Photoneo PhoXi 3D 扫描仪 + 机械臂 + 标定球</sub>
-<sub>HALCON 21.05 · 2022 年夏天的实验记录</sub>
+<sub>**English** · [中文](README.zh-CN.md)</sub>
+
+<sub>Photoneo PhoXi 3D scanner + robot arm + calibration sphere</sub>
+<sub>HALCON 21.05 · notes from a summer 2022 experiment</sub>
 
 </div>
 
 ---
 
-## 这是什么
+## What this is
 
-一台**固定安装**的 3D 扫描仪（eye-to-hand），要看懂机械臂末端在它眼里的位置。
-做法是让机器人带着标定球在视野里摆 20 个不同姿态，每个姿态记一组
-「机器人末端位姿」+「点云里球的位姿」，扔给 HALCON 解出相机与机器人基座之间的变换。
+A **fixed-mount** 3D scanner (eye-to-hand) needs to understand where the robot arm's end effector is in its view.
+The approach: let the robot carry a calibration sphere through 20 different poses in the field of view, record
+"robot end-effector pose" + "sphere pose in the point cloud" for each, and hand it to HALCON to solve for the
+transform between camera and robot base.
 
-> ( ¯꒳¯ ) 说白了就是：**让机器人和相机互相认识一下**。
+> ( ¯꒳¯ ) In plain words: **introducing the robot to the camera**.
 
 <div align="center">
 
-![采集现场](pic/01.png)
+![capture setup](pic/01.png)
 
-<sub>▲ 相机视野里：机械臂 + 标定球 + 标定板</sub>
+<sub>▲ In the camera's view: robot arm + calibration sphere + calibration board</sub>
 
 </div>
 
 ---
 
-## 目录
+## Contents
 
-- [仓库里有什么](#仓库里有什么)
-- [流程](#流程)
-  - [1. 采集](#1-采集)
-  - [2. 建模](#2-建模)
-  - [3. 标定](#3-标定)
-  - [4. 验证](#4-验证)
-- [关键参数](#关键参数)
-- [环境](#环境)
-- [踩过的坑](#踩过的坑)
+- [What's in the repo](#whats-in-the-repo)
+- [Pipeline](#pipeline)
+  - [1. Capture](#1-capture)
+  - [2. Modelling](#2-modelling)
+  - [3. Calibration](#3-calibration)
+  - [4. Verification](#4-verification)
+- [Key parameters](#key-parameters)
+- [Environment](#environment)
+- [Pitfalls](#pitfalls)
 
 ---
 
-## 仓库里有什么
+## What's in the repo
 
-| 文件 / 目录 | 作用 |
+| File / directory | Purpose |
 | --- | --- |
-| `get_calibration_data.hdev` | 连接 PhoXi、采点云、把点云转成标定板灰度图 |
-| `perform_calibration.hdev` | 主标定脚本：建球模型、跑 20 组样本、解 hand-eye |
-| `evaluation.hdev` | 标定完了验一遍：拟合平面 + 找内圆 + 算圆心误差 |
-| `ball_test.hdev` | 球体版本的同款流程，换标定物用的 |
-| `create_pose.hdev` | 手写一个位姿，纯粹拿来试数 |
-| `Repose/Diff_Pose_*.dat` | 20 组标定位姿（旋转向量 + 平移，单位 m） |
-| `Repose/Re_Cam2Obj_*.dat` | 20 组相机到物体的位姿 |
-| `pointcloud/3d_CalBoarde_*.om3` | 20 个标定板点云（HALCON OM3 格式） |
-| `BoardSurfaceModel.stl` | 标定板的三维模型，做 surface-based matching 用 |
-| `pic/` | 过程截图，下面贴了一部分 |
-| `PhotoneoLogFiles/` | PhoXi 的运行日志，排查连接问题用的 |
+| `get_calibration_data.hdev` | Connect to PhoXi, grab point clouds, convert them into calibration-board grayscale images |
+| `perform_calibration.hdev` | Main calibration script: build the sphere model, run 20 samples, solve hand-eye |
+| `evaluation.hdev` | Verify after calibration: fit a plane + find the inner circle + compute centre error |
+| `ball_test.hdev` | The same pipeline for the sphere version, for a different calibration target |
+| `create_pose.hdev` | Hand-written pose, purely for poking at numbers |
+| `Repose/Diff_Pose_*.dat` | 20 calibration poses (rotation vector + translation, in m) |
+| `Repose/Re_Cam2Obj_*.dat` | 20 camera-to-object poses |
+| `pointcloud/3d_CalBoarde_*.om3` | 20 calibration-board point clouds (HALCON OM3 format) |
+| `BoardSurfaceModel.stl` | 3D model of the calibration board, used for surface-based matching |
+| `pic/` | Screenshots of the process; a few are embedded below |
+| `PhotoneoLogFiles/` | PhoXi runtime logs, for debugging connection issues |
 
 ---
 
-## 流程
+## Pipeline
 
-### 1. 采集
+### 1. Capture
 
-`get_calibration_data.hdev` 负责和扫描仪说话。HALCON 通过 `PhoXi` 这个
-frame grabber 接口连 Photoneo，设备靠序列号或索引挑：
+`get_calibration_data.hdev` talks to the scanner. HALCON connects to Photoneo through the `PhoXi`
+frame grabber interface, picking the device by serial number or index:
 
 ```halcon
 AcqName := 'PhoXi'
@@ -77,33 +80,33 @@ set_framegrabber_param (AcqHandle, 'use_grab_image_async_as_trigger_only', 'enab
 grab_image_async (TextureImage, AcqHandle, 0)
 ```
 
-几个要点：
+A few notes:
 
-- **PhoXiControl 必须先跑起来**，否则 `open_framegrabber` 直接失败
-- 输出结构要在 PhoXiControl 里勾好（`OutputStructure` → 选需要的字段 → `Set`），
-  默认 `PointCloud` 和 `Texture` 都是 enabled
-- 拿到的点云单位是 **mm**，后面要转成 **m** 再喂给标定
-- `Texture` 图的对比度得手动调一下，不然标定板上的 DataMatrix 码读不出来
+- **PhoXiControl must be running first**, otherwise `open_framegrabber` fails outright
+- Tick the output structure in PhoXiControl (`OutputStructure` → select the fields you need → `Set`);
+  by default `PointCloud` and `Texture` are both enabled
+- The point cloud comes in **mm**; convert to **m** before feeding it to calibration
+- The `Texture` image's contrast needs manual adjustment, or the DataMatrix code on the board won't be readable
 
 <div align="center">
 
-![采集](pic/05.png)
-![采集](pic/10.png)
+![capture](pic/05.png)
+![capture](pic/10.png)
 
-<sub>▲ 机械臂带着球换姿势，每一帧对应一个标定样本</sub>
+<sub>▲ The arm moves the sphere through poses; each frame is one calibration sample</sub>
 
 </div>
 
-### 2. 建模
+### 2. Modelling
 
-标定板要先有个 3D 模型，才能用 surface-based matching 在点云里找它。
+The calibration board needs a 3D model first, so surface-based matching can find it in the point cloud.
 
 ```halcon
 read_object_model_3d ('BoardSurfaceModel', 'm', [], [], BoardOM3D, Status)
 create_surface_model (BoardOM3D, 0.02, [], [], BoardSurfaceModelID)
 ```
 
-球的话更省事，直接生成一个解析球体（半径 **27.7 mm**）：
+The sphere is simpler — just generate an analytic sphere (radius **27.7 mm**):
 
 ```halcon
 gen_sphere_object_model_3d ([0,0,0,0,0,0,0], SphereRadius, SphereOM3D)
@@ -111,31 +114,31 @@ convex_hull_object_model_3d (SphereOM3D, SphereOM3D)
 create_surface_model (SphereOM3D, 0.02, 'model_invert_normals', 'true', SphereSurfaceModelID)
 ```
 
-那个 `0.02` 是相对采样距离，调小了匹配慢、调大了匹配飘。
+That `0.02` is the relative sampling distance: smaller means slower matching, larger means driftier matching.
 
 <div align="center">
 
-![采集](pic/15.png)
-![采集](pic/20.png)
+![capture](pic/15.png)
+![capture](pic/20.png)
 
-<sub>▲ 20 个姿态基本覆盖了整个工作空间</sub>
+<sub>▲ The 20 poses cover most of the workspace</sub>
 
 </div>
 
-### 3. 标定
+### 3. Calibration
 
-核心就两行：
+The core is two lines:
 
 ```halcon
 create_calib_data ('hand_eye_stationary_cam', 0, 0, HECCalibDataID)
 set_calib_data (HECCalibDataID, 'model', 'general', 'optimization_method', 'nonlinear')
 ```
 
-- `hand_eye_stationary_cam` = **相机固定不动**（eye-to-hand）。
-  要是相机装在机械臂上，这里得换成 `hand_eye_moving_cam`
-- `optimization_method` 选了 `nonlinear`，姿态精度最好，代价是慢一点
+- `hand_eye_stationary_cam` = **camera stays fixed** (eye-to-hand).
+  If the camera were mounted on the arm, this would be `hand_eye_moving_cam`
+- `optimization_method` is `nonlinear`: best pose accuracy, at the cost of speed
 
-然后循环 20 个样本：
+Then loop over the 20 samples:
 
 ```halcon
 NumCalibrationScenes := 20
@@ -148,32 +151,33 @@ for I := 1 to NumCalibrationScenes by 1
 endfor
 ```
 
-这里有个小技巧：**把点云的强度值写进一张灰度图**，行列坐标用点云的 x/y 映射过去。
-因为 `find_data_code_2d` 只吃 byte 类型图像，3D 点云不能直接喂，
-绕一圈就能拿点云「拍」出一张标定板照片来读码。
+A small trick here: **write the point cloud's intensity values into a grayscale image**, mapping row/column
+coordinates from the point cloud's x/y. Because `find_data_code_2d` only accepts byte images — a 3D point
+cloud can't be fed in directly — and going around this way lets you "photograph" a calibration board out of
+the point cloud to read the code.
 
-> 🍮 有些样本匹配会失败，脚本里做了判断，**匹配不上的样本直接跳过不参与标定**，
-> 硬塞进去反而会把结果拉歪。
+> 🍮 Some samples fail to match. The script checks for that and **skips unmatched samples entirely**
+> rather than including them — forcing them in would skew the result.
 
 <div align="center">
 
-![采集](pic/27.png)
+![capture](pic/27.png)
 
 </div>
 
-### 4. 验证
+### 4. Verification
 
-`evaluation.hdev` 是另一条路：不用标定球，直接对标定板做几何验证。
+`evaluation.hdev` takes a different route: no calibration sphere, just geometric verification against the board.
 
-1. 手动画个 ROI，把平面部分裁出来
+1. Draw an ROI by hand and crop out the planar part
    ```halcon
    reduce_object_model_3d_by_view (PlaneROI, ObjectModel3D, CamParam, Pose, ObjectModel3D_Plane)
    fit_primitives_object_model_3d (ObjectModel3D_Plane, 'primitive_type', 'plane', OM3D_Plane)
    get_object_model_3d_params (OM3D_Plane, 'primitive_pose', Cam_H_Plane)
    ```
-2. 用平面姿态把点云摆正，`pose_invert` 之后 `rigid_trans_object_model_3d`
-3. 在摆正后的图上找内圆轮廓，`fit_circle_contour_xld` 拟合出圆心
-4. 圆心实际坐标 vs 标定算出来的坐标，差值就是误差
+2. Use the plane pose to straighten the point cloud: `pose_invert`, then `rigid_trans_object_model_3d`
+3. Find the inner circle contour on the straightened image and fit its centre with `fit_circle_contour_xld`
+4. The difference between the circle's actual coordinates and the calibrated coordinates is the error
 
 ```halcon
 edges_sub_pix (ImageReduced, Circle0_Edges, 'canny', 2, 20, 60)
@@ -182,32 +186,33 @@ fit_circle_contour_xld (Circle0_Outer, 'ahuber', -1, 2, 0, 3, 2, \
                         Circle0_Row, Circle0_Column, Circle0_Radius, ...)
 ```
 
-`'ahuber'` 是 Huber 加权，对轮廓上的离群点比较宽容——实测比默认的最小二乘稳。
+`'ahuber'` is Huber weighting, fairly tolerant of outliers on the contour — measurably more stable than
+plain least squares in practice.
 
 ---
 
-## 关键参数
+## Key parameters
 
-| 参数 | 值 | 说明 |
+| Parameter | Value | Notes |
 | --- | --- | --- |
-| `NumCalibrationScenes` | 20 | 标定位姿数量 |
-| `SphereRadius` | 27.7 | 标定球半径（mm） |
-| 优化方法 | `nonlinear` | 姿态最准 |
-| 标定类型 | `hand_eye_stationary_cam` | 相机固定 |
-| 相机内参 | `gen_cam_par_area_scan_division` | 2064×1544，焦距 0.008 / 5.2e-06 像素尺寸 |
+| `NumCalibrationScenes` | 20 | Number of calibration poses |
+| `SphereRadius` | 27.7 | Calibration sphere radius (mm) |
+| Optimisation | `nonlinear` | Most accurate poses |
+| Calibration type | `hand_eye_stationary_cam` | Fixed camera |
+| Camera intrinsics | `gen_cam_par_area_scan_division` | 2064×1544, focal 0.008 / pixel size 5.2e-06 |
 
-内参在几个脚本里不完全一致，是不同批次拍的：
+The intrinsics aren't identical across the scripts — they were captured in different batches:
 
 ```halcon
-* 带畸变的版本
+* version with distortion
 gen_cam_par_area_scan_division (0.0078066255, -0.121916, 0.00000345, 0.00000345, \
                                 1071.03, 793.9, 2064, 1544, CamParam)
-* 无畸变版本
+* version without distortion
 gen_cam_par_area_scan_division (0.008, 0, 5.2e-06, 5.2e-06, \
                                 1071.3, 793.9, 2064, 1544, CamParam)
 ```
 
-位姿文件长这样（`Repose/Diff_Pose_01.dat`）：
+A pose file looks like this (`Repose/Diff_Pose_01.dat`):
 
 ```
 # 3D POSE PARAMETERS: rotation and translation
@@ -216,36 +221,38 @@ r -0.198842898250703 4.0770661949706 7.42384111526009
 t 1.49453245821141 1.25246473791518 -0.428090294941512
 ```
 
-`r` 是旋转向量（Rodrigues，单位 deg），`t` 是平移（单位 **m**）。
-HALCON 自己 `write_pose` 出来的格式，`read_pose` 能直接读。
+`r` is a rotation vector (Rodrigues, in deg), `t` is translation (in **m**).
+It's the format HALCON's own `write_pose` produces, readable directly by `read_pose`.
 
 ---
 
-## 环境
+## Environment
 
-| 项 | 版本 / 型号 |
+| Item | Version / model |
 | --- | --- |
 | HALCON | 21.05.0.0 Progress |
-| 3D 扫描仪 | Photoneo PhoXi（HALCON 自带 `PhoXi` 接口） |
-| 机械臂 | 任意能读出末端位姿的六轴 |
-| 标定板 | 带 DataMatrix 码的平面板 + 27.7mm 标定球 |
+| 3D scanner | Photoneo PhoXi (via HALCON's built-in `PhoXi` interface) |
+| Robot arm | Any six-axis that can report end-effector poses |
+| Calibration target | Flat board with a DataMatrix code + a 27.7mm sphere |
 
-脚本是 `.hdev` 的 XML 格式（HDevelop 保存的），直接用 HDevelop 打开就能跑。
+The scripts are `.hdev` in XML format (as saved by HDevelop); open them in HDevelop and run.
 
 ---
 
-## 踩过的坑
+## Pitfalls
 
-- **PhoXiControl 没开** → `open_framegrabber` 报错，先确认软件在跑、设备已连接
-- **点云单位搞混** → HALCON 给的是 mm，标定要 m，差 1000 倍结果会离谱到看不出问题
-- **`find_data_code_2d` 只吃 byte 图** → 必须先 `object_model_3d_to_xyz` + `set_grayval` 转一遍
-- **样本质量不齐** → 匹配失败的样本一定要剔掉，宁可少几个也别污染数据
-- **纹理图对比度** → 太低的话 DataMatrix 码读不出来，得手动调
+- **PhoXiControl not running** → `open_framegrabber` errors out; check the software is up and the device connected
+- **Point cloud units mixed up** → HALCON gives mm, calibration wants m; a factor of 1000 off produces results
+  that are wildly wrong but not obviously broken
+- **`find_data_code_2d` only takes byte images** → must go through `object_model_3d_to_xyz` + `set_grayval` first
+- **Uneven sample quality** → definitely drop samples that fail to match; better to have a few fewer than to
+  contaminate the data
+- **Texture image contrast** → too low and the DataMatrix code won't read; adjust manually
 
 ---
 
 <div align="center">
 
-<sub>2022 年做的一点东西，留个档 (´-ω-`)</sub>
+<sub>A little something from 2022, kept for the record (´-ω-`)</sub>
 
 </div>
