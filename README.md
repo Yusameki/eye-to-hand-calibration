@@ -4,7 +4,7 @@
 
 **An eye-to-hand calibration done with HALCON**
 
-<sub>**English** · [中文](README.zh-CN.md)</sub>
+<sub>**English** · [日本語](README.ja.md) · [中文](README.zh-CN.md)</sub>
 
 <sub>Photoneo PhoXi 3D scanner + robot arm + calibration sphere</sub>
 <sub>HALCON 21.05 · notes from a summer 2022 experiment</sub>
