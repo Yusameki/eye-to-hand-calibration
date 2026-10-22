@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🔧 ENAC_eyehand_calibration
+# 🔧 eye-to-hand-calibration
 
 **用 HALCON 做的一次手眼标定（eye-to-hand）**
 
@@ -246,6 +246,6 @@ HALCON 自己 `write_pose` 出来的格式，`read_pose` 能直接读。
 
 <div align="center">
 
-<sub>当年在庆应 Aoki 研究室做的一点东西，留个档 (´-ω-`)</sub>
+<sub>2022 年做的一点东西，留个档 (´-ω-`)</sub>
 
 </div>
