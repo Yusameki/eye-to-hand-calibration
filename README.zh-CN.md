@@ -4,7 +4,7 @@
 
 **用 HALCON 做的一次手眼标定（eye-to-hand）**
 
-<sub>[English](README.md) · **中文**</sub>
+<sub>[English](README.md) · [日本語](README.ja.md) · **中文**</sub>
 
 <sub>Photoneo PhoXi 3D 扫描仪 + 机械臂 + 标定球</sub>
 <sub>HALCON 21.05 · 2022 年夏天的实验记录</sub>
